@@ -1,19 +1,17 @@
-// Fond bleu
-color(blue());
-paint();
+// Source : dégradé linéaire
+a = newlinear(0, 0, 200, 0);
 
-// Source rouge
-color(red());
+addstop(a, 0.0, 1, 0, 0, 1);
+addstop(a, 1.0, 0, 0, 1, 1);
 
-// Masque radial : opaque au centre, transparent à l'extérieur
-m = newradial(100, 100, 0, 100, 100, 100);
+// Masque : dégradé radial
+m = newradial(100, 100, 10, 100, 100, 100);
 
-addstop(m, 0, 1, 1, 1, 1);
-addstop(m, 1, 1, 1, 1, 0);
+addstop(m, 0.0, 0, 0, 0, 1);
+addstop(m, 1.0, 0, 0, 0, 0);
 
-// Application du masque
-rectangle( 20, 20, 160, 160);
-// On clip le rectangle pour délimiter l'application du mask
-clip();
-//Application du mask : le alpha du pattern vient s'ajouter à la source courante : rouge, laissant plus ou moins apparaitre le fond bleu.
+// Application
+usepattern(a);
 mask(m);
+
+// Le mask se sert du canal alpha pour masker plus ou moins le dessin. Ici transparence progressive du centre vers l'exterieur.
