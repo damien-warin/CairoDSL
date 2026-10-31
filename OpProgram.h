@@ -44,6 +44,7 @@ typedef struct op_parser
 {
 	OpContext *current_c;
 	OpModule *current_m;
+	ssize_t current_pattern;
 	int inside_module;
 	OpProgram *program;
 	OpParserFile **files;

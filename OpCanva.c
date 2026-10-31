@@ -3222,37 +3222,63 @@ int OpAddStopColor_execute(OpAddStopColor *self, OpCanvaContext *canvactx)
 	int ret = 0;
 	OpContext *ctx = (OpContext*)canvactx;
 	double n = NAN, o = NAN, r = NAN, g = NAN, b = NAN, a = NAN;
-	if(self->params != NULL)
-	{
-		double *d;
-		size_t size;
-		ret = Op_execute_get_doubles(self->params, (Op*)self, ctx, &d, &size, 5);
-		if(ret == 0)
-		{
-			size_t i = 0;
-			n=d[i++];
-			o=d[i++];
-			r=d[i++];
-			g=d[i++];
-			b=d[i++];
-			if(size > 5)
-				a=d[i];
-		}
-	}
-	else if(self->offset != NULL)
+	if(self->pattern_num != NULL)
 	{
 		ret = Op_execute_get_double(self->pattern_num, (Op*)self, ctx, &n);
-		if(ret == 0)
-			ret = Op_execute_get_double(self->offset, (Op*)self, ctx, &o);
-		if(ret == 0)
-			ret = Op_execute_get_double(self->red, (Op*)self, ctx, &r);
-		if(ret == 0)
-			ret = Op_execute_get_double(self->green, (Op*)self, ctx, &g);
-		if(ret == 0)
-			ret = Op_execute_get_double(self->blue, (Op*)self, ctx, &b);
-		if(ret == 0 && self->alpha != NULL)
-			ret = Op_execute_get_double(self->alpha, (Op*)self, ctx, &a);
+	}
+	if(ret == 0)
+	{
+		if(self->params != NULL)
+		{
+			if(isnan(n))
+			{
+				double *d;
+				size_t size;
+				ret = Op_execute_get_doubles(self->params, (Op*)self, ctx, &d, &size, 5);
+				if(ret == 0)
+				{
+					size_t i = 0;
+					n=d[i++];
+					o=d[i++];
+					r=d[i++];
+					g=d[i++];
+					b=d[i++];
+					if(size > 5)
+						a=d[i];
+				}
+			}
+			else
+			{
+				double *d;
+				size_t size;
+				ret = Op_execute_get_doubles(self->params, (Op*)self, ctx, &d, &size, 4);
+				if(ret == 0)
+				{
+					size_t i = 0;
+					o=d[i++];
+					r=d[i++];
+					g=d[i++];
+					b=d[i++];
+					if(size > 5)
+						a=d[i];
+				}
+			}
+		}
+		else if(self->offset != NULL)
+		{
+			ret = Op_execute_get_double(self->pattern_num, (Op*)self, ctx, &n);
+			if(ret == 0)
+				ret = Op_execute_get_double(self->offset, (Op*)self, ctx, &o);
+			if(ret == 0)
+				ret = Op_execute_get_double(self->red, (Op*)self, ctx, &r);
+			if(ret == 0)
+				ret = Op_execute_get_double(self->green, (Op*)self, ctx, &g);
+			if(ret == 0)
+				ret = Op_execute_get_double(self->blue, (Op*)self, ctx, &b);
+			if(ret == 0 && self->alpha != NULL)
+				ret = Op_execute_get_double(self->alpha, (Op*)self, ctx, &a);
 
+		}
 	}
 	if(ret == 0)
 	{
@@ -3379,6 +3405,8 @@ int OpAddStopColor_fix_operandes(OpAddStopColor *self, OpContext *ctx)
 		}
 		else if(params != NULL)
 		{
+			if(n != NULL)
+				_OpAddStopColor_set_pattern_num(self, n);
 			ret = 0;
 			_OpAddStopColor_set_params(self, params);
 		}

@@ -883,9 +883,49 @@ statement:
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
       
+      
+      
+    | ADDSTOP '(' expression ','
+                 expression ','
+                 expression ','
+                 expression ','
+                 expression ')' ';'
+      {
+      	ssize_t current_pattern = OpParser_get_current_pattern(p);
+      	if(current_pattern < 0)
+      	{
+  			$$ = (Op*)NULL;
+  			String s;
+  			String_init(&s);
+  			String_append_char_string(&s, "Define AddStop without pattern number outside Pattern Definition Block");
+  			yyerror(root, p, String_get_char_string(&s));
+  			String_finalize(&s);
+  			YYERROR;
+      	}
+      	OpAddStopColor *op = (OpAddStopColor*)OpAddStopColor_new();
+      	$$ = (Op*)op;
+      	Op *gv = OpGetVariable_new();
+      	OpGetVariable_set_variable_number((OpGetVariable*)gv, (size_t)current_pattern);
+		OpAddStopColor_set_pattern_num(op, gv);
+		OpAddStopColor_set_offset(op, $3);
+      	OpAddStopColor_set_red(op, $5);
+      	OpAddStopColor_set_green(op, $7);
+      	OpAddStopColor_set_blue(op, $9);
+      	OpAddStopColor_set_alpha(op, $11);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @11.last_line, @11.last_column);
+      }
+      
     | ADDSTOP '(' expression ')' ';'
       {
       	OpAddStopColor *op = (OpAddStopColor*)OpAddStopColor_new();
+      	
+      	ssize_t current_pattern = OpParser_get_current_pattern(p);
+      	if(current_pattern >= 0)
+      	{
+  	      	Op *gv = OpGetVariable_new();
+      		OpGetVariable_set_variable_number((OpGetVariable*)gv, (size_t)current_pattern);
+      		OpAddStopColor_set_pattern_num(op, gv);
+      	}
       	$$ = (Op*)op;
 		OpAddStopColor_set_params(op, $3);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
@@ -1400,6 +1440,74 @@ statement:
   		free($1);
       		
       	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
+      }
+      | IDENTIFIER '=' NEWLINEAR '(' expression ','
+                 expression ','
+                 expression ','
+                 expression ')'
+      {
+	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
+  	    OpParser_set_current_pattern(p, var_num);
+      }
+      			 block
+      {
+      	$$ = OpCanvaBloc_new();
+      	OpNewLinear *op = (OpNewLinear*)OpNewLinear_new();
+		OpNewLinear_set_x1(op, $5);
+      	OpNewLinear_set_y1(op, $7);
+      	OpNewLinear_set_x2(op, $9);
+      	OpNewLinear_set_y2(op, $11);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos((Op*)op, @3.first_line, @3.first_column, @12.last_line, @12.last_column);
+  		
+
+  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
+  		OpSetVariable_set_variable_number(opset, (size_t)OpParser_get_current_pattern(p));
+  		OpSetVariable_set_value(opset, (Op*)op);
+  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		free($1);
+  		
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
+      	
+      	OpBloc_append_Op((OpBloc*)$$, $14);
+      	
+      	OpParser_set_current_pattern(p, (ssize_t)-1);
+      }
+        | IDENTIFIER '=' NEWRADIAL '(' expression ','
+                 expression ','
+                 expression ','
+                 expression ','
+                 expression ','
+                 expression ')'
+      {
+	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
+  	    OpParser_set_current_pattern(p, var_num);
+      }
+      			 block
+      {      
+      	$$ = OpCanvaBloc_new();
+      	OpNewRadial *op = (OpNewRadial*)OpNewRadial_new();
+		OpNewRadial_set_x1(op, $5);
+      	OpNewRadial_set_y1(op, $7);
+      	OpNewRadial_set_r1(op, $9);
+      	OpNewRadial_set_x2(op, $11);
+      	OpNewRadial_set_y2(op, $13);
+      	OpNewRadial_set_r2(op, $15);
+  		Op_set_source_pos((Op*)op, @3.first_line, @3.first_column, @15.last_line, @15.last_column);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		
+
+  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
+  		OpSetVariable_set_variable_number(opset, (size_t)OpParser_get_current_pattern(p));
+  		OpSetVariable_set_value(opset, (Op*)op);
+  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		free($1);
+  		
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
+      	
+      	OpBloc_append_Op((OpBloc*)$$, $18);
+      	
+      	OpParser_set_current_pattern(p, (ssize_t)-1);
       }
       	| USEPATTERN '(' expression ')' ';'
       {

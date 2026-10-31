@@ -240,6 +240,9 @@ void OpParser_init(OpParser *self)
 	LinkedList_init(&self->filenames);
 	self->inside_module = 0;
 	self->inside_loop = 0;
+	self->current_c = NULL;
+	self->current_m = NULL;
+	self->current_pattern = -1;
 }
 
 void OpParser_set_filename_prefix(OpParser *self, String *prefix)
@@ -398,6 +401,16 @@ OpModule *OpParser_get_current_module(OpParser *self)
 void OpParser_set_current_module(OpParser *self, OpModule *m)
 {
 	self->current_m = m;
+}
+
+void OpParser_set_current_pattern(OpParser *self, ssize_t num)
+{
+	self->current_pattern = num;
+}
+
+ssize_t OpParser_get_current_pattern(OpParser *self)
+{
+	return self->current_pattern;
 }
 
 int OpParser_get_inside_module(OpParser *self)
