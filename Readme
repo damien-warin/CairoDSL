@@ -18,7 +18,7 @@ Pour compiler (options pour avoir rapidement accès à l'interface graphique Qt)
 
 mkdir build
 cd build
-cmake ../ -DCMAKE_VERBOSE_MAKEFILE=false  -DCMAKE_RELEASE_MODE=Debug  -DBUILD_UNITTESTS=false -DUPDISTANT=true -DNOSDL=false -DCGIMODE=false -DQTGUI=true
+cmake ../ -DCMAKE_VERBOSE_MAKEFILE=false  -DBUILD_UNITTESTS=false -DUPDISTANT=true -DNOSDL=false -DCGIMODE=false -DQTGUI=true
 make
 
 
