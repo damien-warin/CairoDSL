@@ -72,6 +72,7 @@ int yycolumn = 1;
 (?i:"paint")			{ return PAINT; }
 (?i:"pushgroup")		{ return PUSHGROUP; }
 (?i:"popgroup")			{ return POPGROUP; }
+(?i:"group")			{ return GROUP; }
 (?i:"usegroup")			{ return USEPATTERN; }
 (?i:"usepattern")			{ return USEPATTERN; }
 (?i:"newlinear")		{ return NEWLINEAR; }

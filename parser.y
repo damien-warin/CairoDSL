@@ -76,6 +76,7 @@ Op *root;
 %token PAINT
 %token PUSHGROUP
 %token POPGROUP
+%token GROUP
 %token USEPATTERN
 %token NEWLINEAR
 %token NEWRADIAL
@@ -1380,6 +1381,25 @@ statement:
       {
       	$$ = OpPushGroup_new();
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+      | IDENTIFIER '=' GROUP '(' ')' block
+      {
+      	$$ = OpCanvaBloc_new();
+      	Op *op = OpPushGroup_new();
+      	Op_set_source_pos(op, @3.first_line, @3.first_column, @5.last_line, @5.last_column);
+      	OpBloc_append_Op((OpBloc*)$$, op);
+      	OpBloc_append_Op((OpBloc*)$$, $6);
+      	Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      	op = OpPopGroup_new();
+      	
+  	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
+  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
+  		OpSetVariable_set_variable_number(opset, var_num);
+  		OpSetVariable_set_value(opset, op);
+  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		free($1);
+      		
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
       }
       	| USEPATTERN '(' expression ')' ';'
       {
