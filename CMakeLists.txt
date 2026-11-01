@@ -198,6 +198,18 @@ if( QTGUI)
 	set(CMAKE_AUTOUIC ON)
 	
 	
+	set(GENERATED_KEYWORDS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslKeywords.h")
+	set(LEXER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lexer.l")
+	set(SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extract_keywords.py")
+	
+	add_custom_command(
+	    OUTPUT ${GENERATED_KEYWORDS_FILE}
+	    DEPENDS ${LEXER_FILE} ${SCRIPT_FILE}
+	    COMMAND Python3::Interpreter ${SCRIPT_FILE} ${LEXER_FILE} ${GENERATED_KEYWORDS_FILE}
+	    COMMENT "Génération automatique des mots-clés Cairo DSL depuis lexer.l"
+	)
+	
+	
 	find_package(Qt6 REQUIRED COMPONENTS Widgets Xml SvgWidgets)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(RSVG REQUIRED IMPORTED_TARGET librsvg-2.0)
@@ -207,9 +219,12 @@ if( QTGUI)
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/mainwindow.cpp"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/mainwindow.h"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoCompilerLib.h"
+	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslHighlighter.cpp"
+	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslHighlighter.h"
 	    ${LIB_SRC}
 	    ${BISON_Parser_OUTPUTS}
 	    ${FLEX_Lexer_OUTPUTS}
+	    ${GENERATED_KEYWORDS_FILE}
 	)
 	
 	include_directories(CairoDSLEditor "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/" ${Cairo_INCLUDE_DIR} ${strings_SOURCE_DIR} ${linkedlists_SOURCE_DIR} ${logs_SOURCE_DIR}/src)

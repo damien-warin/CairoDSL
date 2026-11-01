@@ -9,6 +9,9 @@
 #include <QSplitter>
 #include <QFileDialog>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
+#include <QSet>
 #include <QTextStream>
 #include <QMessageBox>
 #include <QSvgRenderer>
@@ -81,6 +84,84 @@ QImage renderSVGWithLibrsvg(const QByteArray &svgData, int width, int height) {
 }
 }
 
+void scanFileAndIncludes(const QString &filePath, QSet<QString> &modules, QSet<QString> &variables, QSet<QString> &visitedFiles) {
+    // Éviter les boucles infinies si un fichier s'inclut mutuellement
+    if (visitedFiles.contains(filePath)) return;
+    visitedFiles.insert(filePath);
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return;
+
+    QTextStream in(&file);
+    QFileInfo fileInfo(filePath);
+    QDir currentDir = fileInfo.dir();
+
+    QRegularExpression includeRegex("#\\s*include\\s+\"([^\"]+)\"", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression modRegex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*=", QRegularExpression::CaseInsensitiveOption);
+
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+
+        // 1. Gérer les includes récursifs
+        auto incMatch = includeRegex.match(line);
+        if (incMatch.hasMatch()) {
+            QString includedFilename = incMatch.captured(1);
+            QString resolvedPath = currentDir.filePath(includedFilename);
+            scanFileAndIncludes(resolvedPath, modules, variables, visitedFiles);
+        }
+
+        // 2. Extraire les modules
+        auto modMatch = modRegex.match(line);
+        if (modMatch.hasMatch()) {
+            modules.insert(modMatch.captured(1));
+        }
+
+        // 3. Extraire les variables
+        auto varMatch = varRegex.match(line);
+        if (varMatch.hasMatch()) {
+            variables.insert(varMatch.captured(1));
+        }
+    }
+    file.close();
+}
+
+void MainWindow::refreshDynamicSymbols() {
+    // Récupérer tout le texte actuel de l'éditeur
+    QString content = editor->toPlainText();
+
+    QSet<QString> modules;
+    QSet<QString> variables;
+
+    // Expressions régulières pour extraire les symboles du texte en cours d'édition
+    QRegularExpression modRegex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*=", QRegularExpression::CaseInsensitiveOption);
+
+    // On peut parcourir le texte ligne par ligne
+    QTextStream in(&content);
+    while (!in.atEnd()) {
+        QString line = in.readLine();
+
+        // (Optionnel) Vous pouvez aussi garder la logique de gestion des #include ici
+        // si un include est ajouté ou modifié au clavier !
+
+        auto modMatch = modRegex.match(line);
+        if (modMatch.hasMatch()) {
+            modules.insert(modMatch.captured(1));
+        }
+
+        auto varMatch = varRegex.match(line);
+        if (varMatch.hasMatch()) {
+            variables.insert(varMatch.captured(1));
+        }
+    }
+
+    // Transmettre les nouveaux symboles à l'highlighter (qui appellera rehighlight())
+    if (highlighter) {
+        highlighter->setDynamicSymbols(modules, variables);
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -137,6 +218,8 @@ void MainWindow::setupUi() {
     editor = new QPlainTextEdit(this);
     editor->setPlaceholderText("Entrez votre code ici...");
     editor->setTabStopDistance(4 * fontMetrics().horizontalAdvance(' '));
+
+    highlighter = new CairoDslHighlighter(editor->document());
 
     QSplitter *editorSplitter = new QSplitter(Qt::Vertical, editorPanel);
 
@@ -305,6 +388,8 @@ void MainWindow::setupUi() {
             this, [this](QTableWidgetItem *) {
                 saveEnvironmentProfiles();
             });
+    connect(editor->document(), &QTextDocument::contentsChanged,
+                this, &MainWindow::refreshDynamicSymbols);
 
     resize(1100, 700);
 }
@@ -321,8 +406,8 @@ void MainWindow::applyDarkStyle() {
         }
 
         QPlainTextEdit {
-            background-color: #1e1f22;
-            color: #eee;
+            background-color: #ffffff;
+            color: #000;
             font-family: monospace;
             font-size: 14px;
             border: none;
@@ -467,6 +552,20 @@ void MainWindow::openFile() {
         QTextStream in(&file);
         editor->setPlainText(in.readAll());
         file.close();
+
+        if (!highlighter) {
+                highlighter = new CairoDslHighlighter(editor->document());
+            }
+
+		// Scanner le fichier et ses includes pour récupérer les symboles runtime
+		QSet<QString> modules;
+		QSet<QString> variables;
+		QSet<QString> visited;
+		scanFileAndIncludes(filePath, modules, variables, visited);
+
+		// Injecter les symboles dans l'highlighter
+		highlighter->setDynamicSymbols(modules, variables);
+
 
         currentFilePath = filePath;
         qDebug() << "Current Filepath : " << currentFilePath;

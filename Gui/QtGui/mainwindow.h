@@ -11,6 +11,7 @@
 #include <QComboBox>
 #include <QTableWidget>
 #include <QStringList>
+#include "CairoDslHighlighter.h"
 
 struct MessageItem {
     QString state;
@@ -45,6 +46,7 @@ private slots:
     void deleteEnvironmentProfile();
     void addEnvironmentVariable();
     void removeEnvironmentVariable();
+    void refreshDynamicSymbols();
 
 private:
     void setupUi();
@@ -78,6 +80,7 @@ private:
 
     // Composants UI
     QPlainTextEdit *editor;
+    CairoDslHighlighter *highlighter = nullptr;
     QLabel *filenameLabel;
     QPushButton *openBtn;
     QPushButton *saveBtn;
