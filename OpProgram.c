@@ -16,6 +16,9 @@
 #include <math.h>
 #include <log.h>
 
+extern int yycolumn;
+extern int yylineno;
+
 
 OpProgram *OpProgram_new(void)
 {
@@ -323,9 +326,12 @@ void OpParser_parse_include(OpParser *self, const char *name)
     }
     close(fd);
 
+    OpParserFile *f = OpParserFile_new();
+
+    f->column = yycolumn;
+    f->line = yylineno;
     YY_BUFFER_STATE state = yy_scan_bytes(String_get_data(new_stream), String_get_length(new_stream));
 
-    OpParserFile *f = OpParserFile_new();
     f->file_content = new_stream;
     f->state = state;
     String_finalize(&filename);
@@ -348,14 +354,16 @@ void OpParser_push_stream(OpParser *self, OpParserFile *s)
 int OpParser_pop_stream(OpParser *self)
 {
 	OpParserFile *f = self->files[self->depth - 1];
-	if(f != NULL)
-	{
-		OpParserFile_free(f);
-		self->files[self->depth - 1] = NULL;
-	}
+	self->files[self->depth - 1] = NULL;
 	self->depth--;
 	if(self->depth > 0)
 		yy_switch_to_buffer(self->files[self->depth - 1]->state);
+	if(f != NULL)
+	{
+		OpParserFile_free(f);
+		yycolumn = f->column;
+		yylineno = f->line;
+	}
 	log_trace("Parser pop : depth = %d\n", self->depth);
 	return self->depth;
 }

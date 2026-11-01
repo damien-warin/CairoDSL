@@ -38,6 +38,8 @@ typedef struct op_parser_file
 {
 	YY_BUFFER_STATE state;
 	String *file_content;
+	int column;
+	int line;
 }OpParserFile;
 
 typedef struct op_parser
