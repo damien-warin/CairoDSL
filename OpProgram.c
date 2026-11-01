@@ -330,6 +330,8 @@ void OpParser_parse_include(OpParser *self, const char *name)
 
     f->column = yycolumn;
     f->line = yylineno;
+    yycolumn = 1;
+    yylineno = 1;
     YY_BUFFER_STATE state = yy_scan_bytes(String_get_data(new_stream), String_get_length(new_stream));
 
     f->file_content = new_stream;
