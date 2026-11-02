@@ -147,14 +147,16 @@ void MainWindow::refreshDynamicSymbols() {
         // (Optionnel) Vous pouvez aussi garder la logique de gestion des #include ici
         // si un include est ajouté ou modifié au clavier !
 
-        auto modMatch = modRegex.match(line);
-        if (modMatch.hasMatch()) {
-            modules.insert(modMatch.captured(1));
+        QRegularExpressionMatchIterator itmod = modRegex.globalMatch(line);
+        while (itmod.hasNext()) {
+            QRegularExpressionMatch match = itmod.next();
+            modules.insert(match.captured(1));
         }
 
-        auto varMatch = varRegex.match(line);
-        if (varMatch.hasMatch()) {
-            variables.insert(varMatch.captured(1));
+        QRegularExpressionMatchIterator itvar = varRegex.globalMatch(line);
+        while (itvar.hasNext()) {
+            QRegularExpressionMatch match = itvar.next();
+            variables.insert(match.captured(1));
         }
     }
 
