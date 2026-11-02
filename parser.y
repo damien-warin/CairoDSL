@@ -181,11 +181,10 @@ Op *root;
 
 %left EQ NEQ
 %left '<' '>' LEQ GEQ
+%left APPEND
 %left '+' '-'
 %left '*' '/'
-%right APPEND
-%right UMINUS
-%right NOT
+%right UMINUS NOT
 
 %nonassoc IFX
 %nonassoc ELSE
