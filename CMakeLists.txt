@@ -89,7 +89,7 @@ include(FetchContent)
 
 FetchContent_Declare(
     LinkedLists
-    GIT_REPOSITORY https://github.com/elekmad/LinkedList.git
+    GIT_REPOSITORY https://github.com/damien-warin/LinkedList.git
 )
 
 if( UPDISTANT )
@@ -103,7 +103,7 @@ target_include_directories(CairoInterpreter PRIVATE ${linkedlists_SOURCE_DIR})
 
 FetchContent_Declare(
 	Strings
-	GIT_REPOSITORY https://github.com/elekmad/String.git
+	GIT_REPOSITORY https://github.com/damien-warin/String.git
 )
 
 if( UPDISTANT )
