@@ -581,12 +581,12 @@ void CanvaCtx_set_font(CanvaCtx *self, const char *name, const char *slant, cons
 	cairo_font_slant_t s = CAIRO_FONT_SLANT_NORMAL;
 	cairo_font_weight_t w = CAIRO_FONT_WEIGHT_NORMAL;
 
-	if(strcmp(slant, "italic") == 0)
+	if(strcasecmp(slant, "italic") == 0)
 		s = CAIRO_FONT_SLANT_ITALIC;
-	else if(strcmp(slant, "oblique") == 0)
+	else if(strcasecmp(slant, "oblique") == 0)
 		s = CAIRO_FONT_SLANT_OBLIQUE;
 
-	if(strcmp(weight, "bold") == 0)
+	if(strcasecmp(weight, "bold") == 0)
 		w = CAIRO_FONT_WEIGHT_BOLD;
 
 	log_trace("Cairo %p font '%s' %d ('%s') %d ('%s')\n", self->cr, name, s, slant, w, weight);
