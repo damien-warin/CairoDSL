@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QPlainTextEdit>
+#include <QCompleter>
 #include <QPushButton>
 #include <QLabel>
 #include <QListWidget>
@@ -11,6 +12,7 @@
 #include <QComboBox>
 #include <QTableWidget>
 #include <QStringList>
+#include <QStringListModel>
 #include "CairoDslHighlighter.h"
 
 struct MessageItem {
@@ -30,6 +32,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void openFile();
@@ -78,9 +81,17 @@ private:
 
     void loadEnvironmentProfile();
 
+    // Completer
+    void setupCompleter();
+	void insertCompletion(const QString &completion);
+	QString textUnderCursor() const;
+
     // Composants UI
     QPlainTextEdit *editor;
     CairoDslHighlighter *highlighter = nullptr;
+    QCompleter *completer = nullptr;
+    QStringListModel *completerModel = nullptr;
+
     QLabel *filenameLabel;
     QPushButton *openBtn;
     QPushButton *saveBtn;

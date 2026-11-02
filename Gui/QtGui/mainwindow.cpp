@@ -32,8 +32,10 @@
 #include <QSignalBlocker>
 #include <QTableWidgetItem>
 #include <QRegularExpression>
+#include <QScrollBar>
 
 #include <QLineEdit>
+#include "CairoDslKeywords.h" // Fichier généré automatiquement par CMake
 
 
 
@@ -135,7 +137,7 @@ void MainWindow::refreshDynamicSymbols() {
 
     // Expressions régulières pour extraire les symboles du texte en cours d'édition
     QRegularExpression modRegex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*=", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*[=\\),]", QRegularExpression::CaseInsensitiveOption);
 
     // On peut parcourir le texte ligne par ligne
     QTextStream in(&content);
@@ -160,6 +162,43 @@ void MainWindow::refreshDynamicSymbols() {
     if (highlighter) {
         highlighter->setDynamicSymbols(modules, variables);
     }
+
+    if (completer) {
+            QStringList allCompletions;
+
+            // 1. Ajouter et nettoyer les mots-clés statiques (retirer les \b)
+            for (const QString &rawKw : getCairoDslKeywords()) {
+                QString cleanKw = rawKw;
+                cleanKw.remove("\\b");
+                if (!cleanKw.isEmpty()) {
+                    allCompletions << cleanKw;
+                }
+            }
+
+            // 2. Ajouter les modules détectés
+            for (const QString &mod : modules) {
+                QString cleanMod = mod.trimmed();
+                if (!cleanMod.isEmpty()) {
+                    allCompletions << cleanMod;
+                }
+            }
+
+            // 3. Ajouter les variables détectées
+            for (const QString &var : variables) {
+                QString cleanVar = var.trimmed();
+                if (!cleanVar.isEmpty()) {
+                    allCompletions << cleanVar;
+                }
+            }
+
+            // 4. Nettoyer les doublons et trier par ordre alphabétique pour un meilleur rendu
+            allCompletions.removeDuplicates();
+            allCompletions.sort(Qt::CaseInsensitive);
+
+            // 5. Injection dans le completer
+            completer->setModel(new QStringListModel(allCompletions, completer));
+            completer->popup()->installEventFilter(this);
+        }
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -218,6 +257,8 @@ void MainWindow::setupUi() {
     editor = new QPlainTextEdit(this);
     editor->setPlaceholderText("Entrez votre code ici...");
     editor->setTabStopDistance(4 * fontMetrics().horizontalAdvance(' '));
+
+    editor->installEventFilter(this);
 
     highlighter = new CairoDslHighlighter(editor->document());
 
@@ -391,7 +432,25 @@ void MainWindow::setupUi() {
     connect(editor->document(), &QTextDocument::contentsChanged,
                 this, &MainWindow::refreshDynamicSymbols);
 
+    setupCompleter();
     resize(1100, 700);
+}
+
+void MainWindow::setupCompleter() {
+    QStringList initialCompletions;
+    initialCompletions << getCairoDslKeywords(); // mots-clés statiques
+
+    completerModel = new QStringListModel(initialCompletions, this);
+
+    completer = new QCompleter(completerModel, this); // On passe directement le modèle ici
+    completer->setWidget(editor);
+    completer->setCompletionMode(QCompleter::PopupCompletion);
+    completer->setCaseSensitivity(Qt::CaseInsensitive);
+    completer->installEventFilter(this);
+    completer->popup()->installEventFilter(this);
+
+    connect(completer, QOverload<const QString &>::of(&QCompleter::activated),
+            this, &MainWindow::insertCompletion);
 }
 
 void MainWindow::applyDarkStyle() {
@@ -525,9 +584,25 @@ void MainWindow::onTextChanged() {
     	sendBtn->setEnabled(false);
 }
 
-// Raccourcis clavier (Ctrl+O, Ctrl+S, Ctrl+Enter)
+void MainWindow::insertCompletion(const QString &completion) {
+    if (completer->widget() != editor)
+        return;
+
+    QTextCursor tc = editor->textCursor();
+    int extra = completion.length() - completer->completionPrefix().length();
+    tc.movePosition(QTextCursor::EndOfWord);
+    tc.insertText(completion.right(extra));
+    editor->setTextCursor(tc);
+}
+
+QString MainWindow::textUnderCursor() const {
+    QTextCursor tc = editor->textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    return tc.selectedText();
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event) {
-    if (event->modifiers() & Qt::ControlModifier || event->modifiers() & Qt::MetaModifier) {
+    if (event->modifiers() & (Qt::ControlModifier | Qt::MetaModifier)) {
         if (event->key() == Qt::Key_O) {
             openFile();
             return;
@@ -535,12 +610,62 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
             saveSource();
             return;
         } else if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
-        	if(editor->toPlainText().isEmpty() == false)
-        		processCode();
+            if(!editor->toPlainText().isEmpty())
+                processCode();
             return;
         }
     }
+
     QMainWindow::keyPressEvent(event);
+}
+
+bool MainWindow::eventFilter(QObject *watched, QEvent *event) {
+	bool isEditor = (watched == editor);
+	bool isPopup = (completer && watched == completer->popup());
+	if (isEditor || isPopup){
+		if(event->type() == QEvent::ShortcutOverride) {
+			QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+			if(keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)
+			{
+				event->accept();
+				return true;
+			}
+		}
+		if(event->type() == QEvent::KeyPress) {
+			QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+			// 1. Si la popup du completer est visible, on intercepte la navigation
+			if (completer && completer->popup()->isVisible()) {
+				switch (keyEvent->key()) {
+				case Qt::Key_Enter:
+				case Qt::Key_Return:
+				case Qt::Key_Escape:
+				case Qt::Key_Tab:
+				case Qt::Key_Backtab:
+					// Insère le choix actuel dans l'éditeur
+					insertCompletion(completer->currentCompletion());
+					completer->popup()->hide();
+					return true; // Le completer gère la touche
+				default:
+					break;
+				}
+			}
+
+			// 2. Détection du raccourci Ctrl + Espace pour forcer l'affichage
+			bool isShortcut = ((keyEvent->modifiers() & Qt::ControlModifier) && keyEvent->key() == Qt::Key_Space);
+
+			if (isShortcut) {
+				QString prefix = textUnderCursor();
+				completer->setCompletionPrefix(prefix);
+
+				QRect cr = editor->cursorRect();
+				cr.setWidth(completer->popup()->sizeHintForColumn(0) + completer->popup()->verticalScrollBar()->sizeHint().width());
+				completer->complete(cr);
+				return true;
+			}
+		}
+    }
+
+    return QMainWindow::eventFilter(watched, event);
 }
 
 void MainWindow::openFile() {
