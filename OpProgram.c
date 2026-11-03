@@ -1944,6 +1944,10 @@ void OpImport_init(OpImport *self)
 {
 	self->root = NULL;
 	self->parser = NULL;
+	self->x = 0;
+	self->y = 0;
+	self->w = 0;
+	self->h = 0;
 }
 
 OpImport *OpImport_new(void)
