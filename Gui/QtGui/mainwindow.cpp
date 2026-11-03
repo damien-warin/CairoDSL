@@ -169,9 +169,8 @@ void MainWindow::refreshDynamicSymbols() {
             QStringList allCompletions;
 
             // 1. Ajouter et nettoyer les mots-clés statiques (retirer les \b)
-            for (const QString &rawKw : getCairoDslKeywords()) {
+            for (const QString &rawKw : getCairoSmartCompletions()) {
                 QString cleanKw = rawKw;
-                cleanKw.remove("\\b");
                 if (!cleanKw.isEmpty()) {
                     allCompletions << cleanKw;
                 }
@@ -585,7 +584,7 @@ void MainWindow::onTextChanged() {
     else
     	sendBtn->setEnabled(false);
 }
-
+/*
 void MainWindow::insertCompletion(const QString &completion) {
     if (completer->widget() != editor)
         return;
@@ -594,6 +593,45 @@ void MainWindow::insertCompletion(const QString &completion) {
     int extra = completion.length() - completer->completionPrefix().length();
     tc.movePosition(QTextCursor::EndOfWord);
     tc.insertText(completion.right(extra));
+    editor->setTextCursor(tc);
+}*/
+
+void MainWindow::insertCompletion(const QString &/*completionIgnored*/) {
+    // 1. Récupérer la vue (la popup) du completer
+    QAbstractItemView *popup = completer->popup();
+
+    // 2. Trouver l'index exact de la ligne sélectionnée dans la popup
+    QModelIndex idx = popup->currentIndex();
+
+    // Si aucun élément n'est explicitement sélectionné (ex: validation directe),
+    // on prend le premier de la liste filtrée
+    if (!idx.isValid()) {
+        idx = completer->completionModel()->index(0, 0);
+    }
+
+    if (!idx.isValid()) return;
+
+    // 3. Récupérer la vraie chaîne complète de cette ligne précise
+    QString fullTextToInsert = idx.data(Qt::DisplayRole).toString();
+
+    // --- 4. Insertion dans le texte ---
+    QTextCursor tc = editor->textCursor();
+
+    // Sélectionne le mot en cours de frappe pour le remplacer
+    tc.select(QTextCursor::WordUnderCursor);
+    tc.insertText(fullTextToInsert);
+
+    // --- 5. Positionnement intelligent du curseur à l'intérieur des parenthèses ---
+    // Par exemple, se placer juste avant le dernier ')' pour commencer à taper les arguments
+    int lastParenthesisIndex = fullTextToInsert.lastIndexOf(')');
+    if (lastParenthesisIndex != -1) {
+        // Calcule le nombre de caractères entre la fin de la chaîne insérée et la dernière parenthèse
+        int offsetFromEnd = fullTextToInsert.length() - lastParenthesisIndex - 1;
+        if (offsetFromEnd > 0) {
+            tc.movePosition(QTextCursor::Left, QTextCursor::MoveAnchor, offsetFromEnd);
+        }
+    }
+
     editor->setTextCursor(tc);
 }
 

@@ -42,7 +42,8 @@ BISON_TARGET(
     Parser
     parser.y
     ${CMAKE_CURRENT_SOURCE_DIR}/parser.tab.c
-    #COMPILE_FLAGS "-Wcounterexamples"
+    COMPILE_FLAGS "--xml"
+    #COMPILE_FLAGS "-Wcounterexamples" "--xml"
 )
 
 FLEX_TARGET(
@@ -200,12 +201,14 @@ if( QTGUI)
 	
 	set(GENERATED_KEYWORDS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslKeywords.h")
 	set(LEXER_FILE "${CMAKE_CURRENT_SOURCE_DIR}/lexer.l")
+	set(BISON_XML_FILE "${CMAKE_CURRENT_SOURCE_DIR}/parser.xml")
+	set(BISON_FILE "${CMAKE_CURRENT_SOURCE_DIR}/parser.tab.c")
 	set(SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/extract_keywords.py")
 	
 	add_custom_command(
 	    OUTPUT ${GENERATED_KEYWORDS_FILE}
-	    DEPENDS ${LEXER_FILE} ${SCRIPT_FILE}
-	    COMMAND Python3::Interpreter ${SCRIPT_FILE} ${LEXER_FILE} ${GENERATED_KEYWORDS_FILE}
+	    DEPENDS ${LEXER_FILE} ${SCRIPT_FILE} ${BISON_FILE}
+	    COMMAND Python3::Interpreter ${SCRIPT_FILE} ${LEXER_FILE} ${BISON_XML_FILE} ${GENERATED_KEYWORDS_FILE}
 	    COMMENT "Génération automatique des mots-clés Cairo DSL depuis lexer.l"
 	)
 	
