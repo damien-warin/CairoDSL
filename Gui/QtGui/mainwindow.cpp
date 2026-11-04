@@ -86,7 +86,7 @@ QImage renderSVGWithLibrsvg(const QByteArray &svgData, int width, int height) {
 }
 }
 
-void scanFileAndIncludes(const QString &filePath, QSet<QString> &modules, QSet<QString> &variables, QSet<QString> &visitedFiles) {
+void MainWindow::scanFileAndIncludes(const QString &filePath, QSet<QString> &modules, QSet<QString> &variables, QSet<QString> &visitedFiles) {
     // Éviter les boucles infinies si un fichier s'inclut mutuellement
     if (visitedFiles.contains(filePath)) return;
     visitedFiles.insert(filePath);
@@ -112,37 +112,40 @@ void scanFileAndIncludes(const QString &filePath, QSet<QString> &modules, QSet<Q
             QString resolvedPath = currentDir.filePath(includedFilename);
             scanFileAndIncludes(resolvedPath, modules, variables, visitedFiles);
         }
-
-        // 2. Extraire les modules
-        auto modMatch = modRegex.match(line);
-        if (modMatch.hasMatch()) {
-            modules.insert(modMatch.captured(1));
-        }
-
-        // 3. Extraire les variables
-        auto varMatch = varRegex.match(line);
-        if (varMatch.hasMatch()) {
-            variables.insert(varMatch.captured(1));
-        }
     }
+    file.seek(0);
+    QByteArray data = file.readAll();
+
+	QString content = QString::fromUtf8(data);
+    refreshDynamicSymbols(&content, true);
     file.close();
 }
 
-void MainWindow::refreshDynamicSymbols() {
-    // Récupérer tout le texte actuel de l'éditeur
-    QString content = editor->toPlainText();
 
-    QSet<QString> modules;
-    QSet<QString> variables;
+void MainWindow::refreshDynamicSymbolsConnect() {
+	refreshDynamicSymbols();
+}
 
+void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
     // Expressions régulières pour extraire les symboles du texte en cours d'édition
     QRegularExpression modRegex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
-    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*[=\\),]", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*=", QRegularExpression::CaseInsensitiveOption);
+    QSet<QString> modules;
+    QSet<QString> variables;
+    QString *in;
+    if(given_in == nullptr)
+    {
+		in = new QString(editor->toPlainText());
+    }
+    else
+    {
+    	in = given_in;
+        qDebug() << "MainWindow" << " Parse include ";
+    }
+    QStringList lines = in->split(QRegularExpression(R"(\r\n|\n|\r)"));
 
-    // On peut parcourir le texte ligne par ligne
-    QTextStream in(&content);
-    while (!in.atEnd()) {
-        QString line = in.readLine();
+    for (const QString &line : lines) {
+        qDebug() << "MainWindow" << " Parse Line " << line;
 
         // (Optionnel) Vous pouvez aussi garder la logique de gestion des #include ici
         // si un include est ajouté ou modifié au clavier !
@@ -158,16 +161,46 @@ void MainWindow::refreshDynamicSymbols() {
             QRegularExpressionMatch match = itvar.next();
             variables.insert(match.captured(1));
         }
+
+        // 1. Regex pour valider un nom de paramètre individuel
+        QRegularExpression paramValidator(R"(^[A-Za-z_][A-Za-z0-9_]*$)");
+
+        // 2. Regex globale pour capturer le module et son bloc d'arguments
+        QRegularExpression rx(R"(\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\))");
+        QRegularExpressionMatchIterator itvarmod = rx.globalMatch(line);
+
+        while (itvarmod.hasNext()) {
+            QRegularExpressionMatch match = itvarmod.next();
+            QString argsBlock = match.captured(2);
+
+            // On découpe par rapport à la virgule
+            QStringList params = argsBlock.split(',', Qt::SkipEmptyParts);
+            for (const QString &param : params) {
+                QString cleanParam = param.trimmed();
+
+                // 3. On vérifie si le paramètre correspond bien à la syntaxe attendue
+                if (paramValidator.match(cleanParam).hasMatch()) {
+                    variables.insert(cleanParam);
+                    qDebug() << "MainWindow" << "Paramètre valide accepté :" << cleanParam;
+                } else if (!cleanParam.isEmpty()) {
+                    qDebug() << "MainWindow" << "Attention: Paramètre invalide ignoré :" << cleanParam;
+                }
+            }
+        }
     }
+    if(in != given_in)
+    	delete in;
 
     // Transmettre les nouveaux symboles à l'highlighter (qui appellera rehighlight())
     if (highlighter) {
-        highlighter->setDynamicSymbols(modules, variables);
+    	if(static_rules)
+    		highlighter->setIncludesRules(modules, variables);
+    	else
+    		highlighter->setDynamicSymbols(modules, variables);
     }
 
     if (completer) {
             QStringList allCompletions;
-
             // 1. Ajouter et nettoyer les mots-clés statiques (retirer les \b)
             for (const QString &rawKw : getCairoSmartCompletions()) {
                 QString cleanKw = rawKw;
@@ -192,9 +225,22 @@ void MainWindow::refreshDynamicSymbols() {
                 }
             }
 
+            if(static_rules == false)
+            	allCompletions << static_completetions;
+
+
             // 4. Nettoyer les doublons et trier par ordre alphabétique pour un meilleur rendu
             allCompletions.removeDuplicates();
             allCompletions.sort(Qt::CaseInsensitive);
+
+
+
+            if(static_rules == true)
+            {
+            	static_completetions << allCompletions;
+            	static_completetions.removeDuplicates();
+            	static_completetions.sort(Qt::CaseInsensitive);
+            }
 
             // 5. Injection dans le completer
             completer->setModel(new QStringListModel(allCompletions, completer));
@@ -431,7 +477,7 @@ void MainWindow::setupUi() {
                 saveEnvironmentProfiles();
             });
     connect(editor->document(), &QTextDocument::contentsChanged,
-                this, &MainWindow::refreshDynamicSymbols);
+                this, &MainWindow::refreshDynamicSymbolsConnect);
 
     setupCompleter();
     resize(1100, 700);

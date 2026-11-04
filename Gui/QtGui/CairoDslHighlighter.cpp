@@ -47,6 +47,33 @@ CairoDslHighlighter::CairoDslHighlighter(QTextDocument *parent)
     staticRules.append(rule);
 }
 
+void CairoDslHighlighter::setIncludesRules(const QSet<QString> &modules, const QSet<QString> &variables)
+{
+    QTextCharFormat moduleFormat;
+    moduleFormat.setForeground(QColor("#267F99"));
+    moduleFormat.setFontWeight(QFont::Bold);
+
+    QTextCharFormat varFormat;
+    //varFormat.setForeground(QColor("#001080"));
+    varFormat.setForeground(QColor("#FF1080"));
+
+    HighlightingRule rule;
+
+    for (const QString &mod : modules) {
+        rule.pattern = QRegularExpression("\\b" + mod + "\\b", QRegularExpression::CaseInsensitiveOption);
+        rule.format = moduleFormat;
+        staticRules.append(rule);
+    }
+
+    for (const QString &var : variables) {
+        rule.pattern = QRegularExpression("\\b" + var + "\\b", QRegularExpression::CaseInsensitiveOption);
+        rule.format = varFormat;
+        staticRules.append(rule);
+    }
+
+    rehighlight();
+}
+
 void CairoDslHighlighter::setDynamicSymbols(const QSet<QString> &modules, const QSet<QString> &variables) {
     // 1. Si les symboles n'ont pas changé, on s'arrête net (coupe la boucle !)
     if (modules == lastKnownModules && variables == lastKnownVariables) {

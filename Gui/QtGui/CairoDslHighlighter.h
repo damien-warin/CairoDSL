@@ -10,6 +10,7 @@ public:
     CairoDslHighlighter(QTextDocument *parent = nullptr);
     // Méthode pour mettre à jour les symboles dynamiques trouvés dans les includes
     void setDynamicSymbols(const QSet<QString> &modules, const QSet<QString> &variables);
+    void setIncludesRules(const QSet<QString> &modules, const QSet<QString> &variables);
 
 protected:
     void highlightBlock(const QString &text) override;

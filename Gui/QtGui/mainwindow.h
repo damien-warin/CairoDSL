@@ -49,11 +49,14 @@ private slots:
     void deleteEnvironmentProfile();
     void addEnvironmentVariable();
     void removeEnvironmentVariable();
-    void refreshDynamicSymbols();
+    void refreshDynamicSymbols(QString *given_in = nullptr, bool static_rules = false);
+    void refreshDynamicSymbolsConnect();
 
 private:
     void setupUi();
     void applyDarkStyle();
+    void scanFileAndIncludes(const QString &, QSet<QString> &, QSet<QString> &, QSet<QString> &);
+
 
     void processXmlResponse(const QString &xmlText,
                             const QByteArray &out,
@@ -91,6 +94,7 @@ private:
     CairoDslHighlighter *highlighter = nullptr;
     QCompleter *completer = nullptr;
     QStringListModel *completerModel = nullptr;
+    QStringList static_completetions;
 
     QLabel *filenameLabel;
     QPushButton *openBtn;
