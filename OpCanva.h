@@ -103,6 +103,13 @@ typedef struct op_get_line_width
 	Op super;
 }OpGetLineWidth;
 
+typedef struct op_set_dash_array
+{
+	Op super;
+	Op *dashes;
+	Op *offset;
+}OpSetDashArray;
+
 typedef struct op_set_out_size
 {
 	Op super;

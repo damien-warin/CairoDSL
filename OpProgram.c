@@ -1092,9 +1092,9 @@ void OpParseImport_import_parser_ellipse(OpParseImport *self, xmlTextReaderPtr r
 void OpParseImport_import_parse_color_section(xmlTextReaderPtr reader, OpBloc *ret)
 {
 	OpColor *fill_color = NULL, *stroke_color = NULL;
-	int fill_present = 0, stroke_present = 0, line_width_present = 0;
+	int fill_present = 0, stroke_present = 0, line_width_present = 0, dasharray_present = 0;
 	Op *fill_draw = NULL, *stroke_draw = NULL, *style = NULL;
-	_OpParseImport_import_parse_style_section(reader, &fill_color, &fill_present, &stroke_color, &stroke_present, &style, &line_width_present);
+	_OpParseImport_import_parse_style_section(reader, &fill_color, &fill_present, &stroke_color, &stroke_present, &style, &line_width_present, &dasharray_present);
 
 	if(stroke_color == NULL && stroke_present == 0)
 		_OpParseImport_import_parse_color_section(reader, &stroke_color, "stroke");
@@ -1116,6 +1116,37 @@ void OpParseImport_import_parse_color_section(xmlTextReaderPtr reader, OpBloc *r
 				OpBloc_append_Op((OpBloc*)style, slw);
 			}
 			xmlFree(attr);
+		}
+	}
+	if(stroke_color != NULL && dasharray_present == 0)
+	{
+		xmlChar *attr2 = xmlTextReaderGetAttribute(reader, BAD_CAST "stroke-dasharray");
+		if(attr2 != NULL)
+		{
+			OpVariable v;
+			OpVariable_init(&v);
+			OpVariable_set_type(&v, DOUBLES);
+			char *p = (char*)attr2;
+			while(*p == ' ' || *p == ',')
+				p++;
+			while(*p != '\0')
+			{
+				double d = strtod(p, &p);
+				if(!isnan(d))
+					OpVariable_append_double(&v, d);
+				while(*p == ' ' || *p == ',')
+					p++;
+			}
+			if(OpVariable_get_number_elements(&v) > 0)
+			{
+				if(style == NULL)
+					style = OpBloc_new();
+				Op *sd = OpSetDashArray_new(), *gv = OpGetValue_new();
+				OpGetValue_copy_variable((OpGetValue*)gv, &v);
+				OpSetDashArray_set_dashes((OpSetDashArray*)sd, gv);
+				OpBloc_append_Op((OpBloc*)style, sd);
+			}
+			OpVariable_terminate(&v);
 		}
 	}
 
@@ -1141,7 +1172,7 @@ void OpParseImport_import_parse_color_section(xmlTextReaderPtr reader, OpBloc *r
 	}
 }
 
-void _OpParseImport_import_parse_style_section(xmlTextReaderPtr reader, OpColor **fill, int *fill_present, OpColor **stroke, int *stroke_present, Op **style, int *linewidth_present)
+void _OpParseImport_import_parse_style_section(xmlTextReaderPtr reader, OpColor **fill, int *fill_present, OpColor **stroke, int *stroke_present, Op **style, int *linewidth_present, int *dasharray_present)
 {
 	xmlChar *attr = xmlTextReaderGetAttribute(reader, BAD_CAST "style");
 	if(attr != NULL)
@@ -1216,6 +1247,38 @@ void _OpParseImport_import_parse_style_section(xmlTextReaderPtr reader, OpColor 
 					OpSetLineWidth_set_width((OpSetLineWidth*)sw, gv);
 					OpBloc_append_Op((OpBloc*)*style, sw);
 				}
+			}
+
+
+			OpParserHashElt *dash;
+			HASH_FIND_STR(elts, "stroke-dasharray", dash);
+			if(dash != NULL)
+			{
+				OpVariable v;
+				OpVariable_init(&v);
+				OpVariable_set_type(&v, DOUBLES);
+				char *p = dash->value;
+				while(*p == ' ' || *p == ',')
+					p++;
+				while(*p != '\0')
+				{
+					double d = strtod(p, &p);
+					if(!isnan(d))
+						OpVariable_append_double(&v, d);
+					while(*p == ' ' || *p == ',')
+						p++;
+				}
+				if(OpVariable_get_number_elements(&v) > 0)
+				{
+					*dasharray_present = 1;
+					if(*style == NULL)
+						*style = OpBloc_new();
+					Op *sd = OpSetDashArray_new(), *gv = OpGetValue_new();
+					OpGetValue_copy_variable((OpGetValue*)gv, &v);
+					OpSetDashArray_set_dashes((OpSetDashArray*)sd, gv);
+					OpBloc_append_Op((OpBloc*)*style, sd);
+				}
+				OpVariable_terminate(&v);
 			}
 		}
 

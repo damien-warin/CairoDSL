@@ -67,6 +67,9 @@ int yycolumn = 1;
 (?i:"getrgb")			{ return RGBCOLOR; }
 (?i:"setlinewidth")	{ return SETLINEWIDTH; }
 (?i:"getlinewidth")	{ return GETLINEWIDTH; }
+(?i:"setdash")		{ return SETDASH; }
+(?i:"getdash")		{ return GETDASH; }
+(?i:"getdashoffset")	{ return GETDASHOFFSET; }
 (?i:"fill")			{ return FILL; }
 (?i:"fillpreserve")	{ return FILLPRESERVE; }
 (?i:"paint")			{ return PAINT; }

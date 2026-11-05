@@ -576,6 +576,47 @@ double CanvaCtx_get_line_width(CanvaCtx *self)
 	return w;
 }
 
+void CanvaCtx_set_dash_array(CanvaCtx *self, const double *v, int number, double offset)
+{
+	String s;
+	String_init(&s);
+	int i;
+	for(i = 0; i < number; i++)
+	{
+		String_append_printf(&s, "%f", v[i]);
+		if(i < number - 1)
+			String_append_char_string(&s, ", ");
+	}
+	log_trace("Cairo %p set dash array width %s %d %f\n", self->cr, String_get_char_string(&s), number, offset);
+	String_finalize(&s);
+	cairo_set_dash (self->cr, v, number, offset);
+}
+
+void CanvaCtx_get_dash_array(CanvaCtx *self, double **v, int *number, double *offset)
+{
+	if(v != NULL || number == NULL || offset == NULL)
+		return;
+	*number = cairo_get_dash_count(self->cr);
+	if(*number > 0)
+	{
+		*v = malloc(sizeof(double) * (*number));
+		cairo_get_dash(self->cr, v, offset);
+		String s;
+		String_init(&s);
+		int i;
+		for(i = 0; i < number; i++)
+		{
+			String_append_printf(&s, "%f", *v[i]);
+			if(i < number - 1)
+				String_append_char_string(&s, ", ");
+		}
+		log_trace("Cairo %p get dash array width %s %d %f\n", self->cr, String_get_char_string(&s), *number, *offset);
+		String_finalize(&s);
+	}
+	else
+		log_trace("Cairo %p get dash array width count 0\n", self->cr);
+}
+
 void CanvaCtx_set_font(CanvaCtx *self, const char *name, const char *slant, const char *weight)
 {
 	cairo_font_slant_t s = CAIRO_FONT_SLANT_NORMAL;

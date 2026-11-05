@@ -71,6 +71,9 @@ Op *root;
 %token COLOR
 %token SETLINEWIDTH
 %token GETLINEWIDTH
+%token SETDASH
+%token GETDASH
+%token GETDASHOFFSET
 %token FILL
 %token FILLPRESERVE
 %token PAINT
@@ -1097,6 +1100,44 @@ statement:
   		Op_set_source_pos((Op*)opl, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
   		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
       }
+		| SETDASH '(' expression ')' ';'
+      {
+      	OpSetDashArray *op = (OpSetDashArray*)OpSetDashArray_new();
+      	$$ = (Op*)op;
+		OpSetDashArray_set_dashes(op, $3);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+		| SETDASH '(' expression ',' expression ')' ';'
+      {
+      	OpSetDashArray *op = (OpSetDashArray*)OpSetDashArray_new();
+      	$$ = (Op*)op;
+		OpSetDashArray_set_dashes(op, $3);
+		OpSetDashArray_set_offset(op, $5);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+		| SETDASH '(' expression ')' block
+      {
+      	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+      	$$ = (Op*)op;
+      	OpSetDashArray *d = (OpSetDashArray*)OpSetDashArray_new();
+        OpBloc_append_Op(op, (Op*)d);
+        OpBloc_append_Op(op, $5);
+		OpSetDashArray_set_dashes(d, $3);
+  		Op_set_source_pos((Op*)d, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
+      }
+		| SETDASH '(' expression ',' expression ')' block
+      {
+      	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+      	$$ = (Op*)op;
+      	OpSetDashArray *d = (OpSetDashArray*)OpSetDashArray_new();
+        OpBloc_append_Op(op, (Op*)d);
+        OpBloc_append_Op(op, $7);
+		OpSetDashArray_set_dashes(d, $3);
+		OpSetDashArray_set_offset(d, $5);
+  		Op_set_source_pos((Op*)d, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
+      }
       	| ROTATE '(' expression ')' ';'
       {
       	OpRotate *op = (OpRotate*)OpRotate_new();
@@ -1690,6 +1731,16 @@ expression:
 		| GETLINEWIDTH '(' ')'
       {
       	$$ = OpGetLineWidth_new();
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+		| GETDASH '(' ')'
+      {
+      	$$ = OpGetDashArray_new();
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+		| GETDASHOFFSET '(' ')'
+      {
+      	$$ = OpGetDashOffset_new();
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
 		| PI '('  ')'

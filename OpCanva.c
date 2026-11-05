@@ -764,7 +764,7 @@ int OpPolyline_execute(OpPolyline *self, OpCanvaContext *canvactx)
 	if(ret == 0)
 	{
 		size_t i;
-		double *d = OpVariable_get_doubles(v);
+		const double *d = OpVariable_get_doubles(v);
 		log_trace("Op Draw Polyline\n");
 		CanvaCtx_new_path(canvactx->Canva);
 		CanvaCtx_move_to(canvactx->Canva, d[0], d[1]);
@@ -1759,6 +1759,179 @@ int OpGetLineWidth_execute(OpGetLineWidth *self, OpCanvaContext *canvactx)
 Op *OpGetLineWidth_new(void)
 {
 	return Op_new(&OpGetLineWidth_isa);
+}
+
+
+OpIsa OpSetDashArray_isa = {
+		.name="SetDashArray",
+		.size=sizeof(OpSetDashArray),
+		.init = (void(*)(Op*))OpSetDashArray_init,
+		.terminate = (void(*)(Op*))OpSetDashArray_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))OpSetDashArray_fix_operandes,
+		.execute = (int(*)(Op*, OpContext*))OpSetDashArray_execute,
+		.check_args = (int(*)(Op*, OpContext*))OpSetDashArray_check_args,
+};
+
+void OpSetDashArray_init(OpSetDashArray *self)
+{
+	Op_init(&self->super);
+	self->dashes = NULL;
+	self->offset = NULL;
+}
+
+void OpSetDashArray_terminate(OpSetDashArray *self)
+{
+	Op_terminate(&self->super);
+	_OpSetDashArray_set_dashes(self, NULL);
+	_OpSetDashArray_set_offset(self, NULL);
+}
+
+void _OpSetDashArray_set_dashes(OpSetDashArray *self, Op *v)
+{
+	OP_SET_OPERANDE(self, dashes, v);
+}
+
+void _OpSetDashArray_set_offset(OpSetDashArray *self, Op *v)
+{
+	OP_SET_OPERANDE(self, offset, v);
+}
+
+#define OPSETDASHARRAY_DASHES 0
+#define OPSETDASHARRAY_COUNT 1
+
+void OpSetDashArray_set_dashes(OpSetDashArray *self, Op *v)
+{
+	OP_ADD_OPERANDE(self, v, OPSETLINEWIDTH_WIDTH);
+}
+
+void OpSetDashArray_set_offset(OpSetDashArray *self, Op *v)
+{
+	OP_ADD_OPERANDE(self, v, OPSETDASHARRAY_COUNT);
+}
+
+
+int OpSetDashArray_fix_operandes(OpSetDashArray *self, OpCanvaContext *canvactx)
+{
+	int ret = -1;
+	if(self->super.nb_ops > OPSETDASHARRAY_DASHES)
+	{
+		ret = 0;
+		_OpSetDashArray_set_dashes(self, self->super.operandes[OPSETDASHARRAY_DASHES]);
+		if(self->super.nb_ops > OPSETDASHARRAY_COUNT)
+			_OpSetDashArray_set_offset(self, self->super.operandes[OPSETDASHARRAY_COUNT]);
+	}
+	return ret;
+}
+
+int OpSetDashArray_check_args(OpSetDashArray *self, OpCanvaContext *canvactx)
+{
+	if(self->dashes != NULL)
+		return 0;
+	return -1;
+}
+
+int OpSetDashArray_execute(OpSetDashArray *self, OpCanvaContext *canvactx)
+{
+	int ret = 0;
+	OpContext *ctx = (OpContext*)canvactx;
+	OpVariable v;
+	OpVariable_init(&v);
+	ret = Op_execute(self->dashes, ctx);
+	if(ret == 0)
+	{
+		OpVariable_copy(&v, OpContext_get_current_value(ctx));
+		if(OpVariable_get_type(&v) == DOUBLES)
+		{
+			double offset = 0;
+			if(self->offset != NULL)
+				ret = Op_execute_get_double(self->offset, (Op*)self, ctx, &offset);
+			if(ret == 0)
+			{
+				CanvaCtx_set_dash_array(canvactx->Canva, OpVariable_get_doubles(&v), (int)OpVariable_get_number_elements(&v), offset);
+			}
+		}
+		else
+		{
+			ret = -1;
+			OpContext_set_running_state(ctx, (Op*)self, Error, "first operande must be a DOUBLES");
+		}
+	}
+	OpVariable_terminate(&v);
+	return ret;
+}
+
+Op *OpSetDashArray_new(void)
+{
+	return Op_new(&OpSetDashArray_isa);
+}
+
+OpIsa OpGetDashArray_isa = {
+		.name="GetDashArray",
+		.size=sizeof(Op),
+		.init = (void(*)(Op*))Op_init,
+		.terminate = (void(*)(Op*))Op_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))NULL,
+		.execute = (int(*)(Op*, OpContext*))OpGetDashArray_execute,
+		.check_args = (int(*)(Op*, OpContext*))NULL,
+};
+
+int OpGetDashArray_execute(Op *self, OpCanvaContext *canvactx)
+{
+	int ret = 0;
+	double *dash;
+	double offset;
+	int count;
+	OpContext *ctx = (OpContext*)canvactx;
+	OpVariable v;
+	OpVariable_init(&v);
+	OpVariable_set_type(&v, DOUBLES);
+	CanvaCtx_get_dash_array(canvactx->Canva, &dash, &count, &offset);
+	if(dash != NULL)
+	{
+		int i;
+		for (i = 0; i < count; i++)
+		{
+			OpVariable_append_double(&v, dash[i]);
+		}
+		free(dash);
+	}
+	OpContext_copy_variable_to_current_value(ctx, &v);
+	OpVariable_terminate(&v);
+	return ret;
+}
+
+Op *OpGetDashArray_new(void)
+{
+	return Op_new(&OpGetDashArray_isa);
+}
+
+OpIsa OpGetDashOffset_isa = {
+		.name="GetDashOffset",
+		.size=sizeof(Op),
+		.init = (void(*)(Op*))Op_init,
+		.terminate = (void(*)(Op*))Op_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))NULL,
+		.execute = (int(*)(Op*, OpContext*))OpGetDashOffset_execute,
+		.check_args = (int(*)(Op*, OpContext*))NULL,
+};
+
+int OpGetDashOffset_execute(Op *self, OpCanvaContext *canvactx)
+{
+	int ret = 0;
+	double *dash;
+	double offset;
+	int count;
+	OpContext *ctx = (OpContext*)canvactx;
+	CanvaCtx_get_dash_array(canvactx->Canva, &dash, &count, &offset);
+	OpContext_set_current_value_double(ctx, offset);
+	if(dash != NULL)
+		free(dash);
+	return ret;
+}
+
+Op *OpGetDashOffset_new(void)
+{
+	return Op_new(&OpGetDashOffset_isa);
 }
 
 

@@ -60,7 +60,7 @@ typedef struct op_parser
 typedef struct op_parser_hash_elt
 {
 	char name[30];
-	char value[30];
+	char value[100];
 	UT_hash_handle hh;
 }OpParserHashElt;
 
