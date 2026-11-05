@@ -466,6 +466,13 @@ void OpParser_set_program(OpParser *self, OpProgram *p)
 int OpParseImport_import_svg(OpParseImport *self, OpImport *import, OpContext *ctx, const char *name)
 {
 	OpBloc *CanvaBloc = (OpBloc*)OpCanvaBloc_new();
+
+	/* Set LineWidth to 1 by default for SVG import, as normal SVG. */
+	Op *sl = OpSetLineWidth_new(), *gv = OpGetValue_new();
+	OpGetValue_set_value((OpGetValue*)gv, 1.0);
+	OpSetLineWidth_set_width((OpSetLineWidth*)sl, gv);
+	OpBloc_append_Op(CanvaBloc, sl);
+
 	String filename;
 	String_init(&filename);
 	if(name[0] != '/')//Absolute path
