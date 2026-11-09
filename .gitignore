@@ -1,1 +1,9 @@
 *.proto.h
+parser.tab.c
+parser.tab.h
+parser.xml
+lexer.h
+lex.yy.c
+Gui/QtGui/CairoDslKeywords.h
+Gui/cairo_dsl_editor_includes.html
+Gui/cairo_dsl_editor_includes_tree.html
