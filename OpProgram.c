@@ -473,6 +473,19 @@ int OpParseImport_import_svg(OpParseImport *self, OpImport *import, OpContext *c
 	OpSetLineWidth_set_width((OpSetLineWidth*)sl, gv);
 	OpBloc_append_Op(CanvaBloc, sl);
 
+	/* Set Font to sans-serif size 10 by default for SVG import, as normal SVG. */
+	Op *sf = OpFontSelector_new();
+	OpFontSelector_set_font_name((OpFontSelector*)sf, "sans-serif");
+	OpFontSelector_set_font_slant((OpFontSelector*)sf, "normal");
+	OpFontSelector_set_font_weight((OpFontSelector*)sf, "normal");
+	OpBloc_append_Op(CanvaBloc, sf);
+
+	Op *fs = OpSetFontSize_new();
+	gv = OpGetValue_new();
+	OpGetValue_set_value((OpGetValue*)gv, 10.0);
+	OpSetFontSize_set_size((OpSetFontSize*)fs, gv);
+	OpBloc_append_Op(CanvaBloc, fs);
+
 	String filename;
 	String_init(&filename);
 	if(name[0] != '/')//Absolute path
@@ -551,6 +564,16 @@ int OpParseImport_import_svg(OpParseImport *self, OpImport *import, OpContext *c
 	    	append = 1;
 	    	OpParseImport_import_parser_polyline(self, reader, bloc, 1);
 	    }
+	    else if (xmlStrEqual(name, BAD_CAST "text")) {
+	    	//Le parseur va avancer au noeud suivant pour avoir le text, donc après la section style...
+	    	OpBloc *color_bloc = (OpBloc*)OpBloc_new();
+	    	//Comme la fonction va automatiquement ajouter l'opérateur draw, on la stock pour l'ajouter après.
+	    	OpParseImport_import_parse_color_section(reader, color_bloc);
+	    	OpParseImport_import_parser_text(self, reader, bloc);
+			OpBloc_append_Op(CanvaBloc, (Op*)bloc);
+			OpBloc_append_Op(CanvaBloc, (Op*)color_bloc);
+			bloc = NULL;
+	    }
 
 	    if(append == 1)
 	    {
@@ -558,7 +581,7 @@ int OpParseImport_import_svg(OpParseImport *self, OpImport *import, OpContext *c
 
 			OpBloc_append_Op(CanvaBloc, (Op*)bloc);
 	    }
-	    else
+	    else if(bloc != NULL)
 	    	Op_free((Op*)bloc);
 	}
 
@@ -793,6 +816,16 @@ int OpParseImport_import_parser_group(OpParseImport *self, xmlTextReaderPtr read
 	    	append = 1;
 	    	OpParseImport_import_parser_polyline(self, reader, bloc, 1);
 	    }
+	    else if (xmlStrEqual(name, BAD_CAST "text")) {
+	    	//Le parseur va avancer au noeud suivant pour avoir le text, donc après la section style...
+	    	OpBloc *color_bloc = (OpBloc*)OpBloc_new();
+	    	//Comme la fonction va automatiquement ajouter l'opérateur draw, on la stock pour l'ajouter après.
+	    	OpParseImport_import_parse_color_section(reader, color_bloc);
+	    	OpParseImport_import_parser_text(self, reader, bloc);
+			OpBloc_append_Op(ret, (Op*)bloc);
+			OpBloc_append_Op(ret, (Op*)color_bloc);
+			bloc = NULL;
+	    }
 
 	    if(append == 1)
 	    {
@@ -800,7 +833,7 @@ int OpParseImport_import_parser_group(OpParseImport *self, xmlTextReaderPtr read
 
 			OpBloc_append_Op(ret, (Op*)bloc);
 	    }
-	    else
+	    else if(bloc != NULL)
 	    	Op_free((Op*)bloc);
 	}
 	log_trace("End of Group %p\n", ret);
@@ -860,6 +893,89 @@ void OpParseImport_import_parser_rect(OpParseImport *self, xmlTextReaderPtr read
 	}
 }
 
+
+void OpParseImport_import_parser_text(OpParseImport *self, xmlTextReaderPtr reader, OpBloc *ret)
+{
+	log_trace("Parse SVG TEXT\n");
+	double x = NAN, y = NAN;
+	xmlChar *attr = xmlTextReaderGetAttribute(reader, BAD_CAST "x");
+	if(attr != NULL)
+	{
+		x = strtod((char*)attr, NULL);
+		xmlFree(attr);
+	}
+	attr = xmlTextReaderGetAttribute(reader, BAD_CAST "y");
+	if(attr != NULL)
+	{
+		y = strtod((char*)attr, NULL);
+		xmlFree(attr);
+	}
+	attr = xmlTextReaderGetAttribute(reader, BAD_CAST "font-weight");
+	if(attr != NULL)
+	{
+		if(strcasecmp((char*)attr, "bold") == 0)
+		{
+			Op *fs = OpFontSelector_new();
+			OpFontSelector_set_font_weight((OpFontSelector*)fs, (char*)attr);
+			OpFontSelector_set_font_slant((OpFontSelector*)fs, "normal");
+			OpFontSelector_set_font_name((OpFontSelector*)fs, "sans-serif");
+			OpBloc_append_Op(ret, fs);
+		}
+		xmlFree(attr);
+	}
+	attr = xmlTextReaderGetAttribute(reader, BAD_CAST "font-size");
+	if(attr != NULL)
+	{
+		double size = strtod((char*)attr, NULL);
+		Op *fs = OpSetFontSize_new(), *gv = OpGetValue_new();
+		OpGetValue_set_value((OpGetValue*)gv, size);
+		OpSetFontSize_set_size((OpSetFontSize*)fs, gv);
+		OpBloc_append_Op(ret, fs);
+		xmlFree(attr);
+	}
+	// --- Formules text-anchor pour Cairo ---
+	//
+	// Option A : Version ultra-précise (avec correction x_bearing)
+	// double x_start  = x - x_bearing;
+	// double x_middle = x - (width / 2.0 + x_bearing);
+	// double x_end    = x - (width + x_bearing);
+	//
+	// Option B : Version simplifiée (sans x_bearing, parfaite pour 90% des cas sans se prendre la tête)
+	// double x_start  = x;
+	// double x_middle = x - (width / 2.0);
+	// double x_end    = x - width;
+	if(xmlTextReaderRead(reader) == 1)
+	{
+		if(xmlTextReaderNodeType(reader) == XML_READER_TYPE_TEXT)
+		{
+			xmlChar *content = xmlTextReaderValue(reader);
+			if(content != NULL)
+			{
+				Op *gv;
+				if(!isnan(x) && !isnan(y))
+				{
+					OpVariable v;
+					OpVariable_init(&v);
+					OpVariable_append_double(&v, x);
+					OpVariable_append_double(&v, y);
+					Op *moveto = OpMoveTo_new();
+					gv = OpGetValue_new();
+					OpGetValue_copy_variable((OpGetValue*)gv, &v);
+					OpMoveTo_set_params((OpMoveTo*)moveto, gv);
+					OpBloc_append_Op(ret, moveto);
+					OpVariable_terminate(&v);
+				}
+				Op *t = OpDrawText_new();
+				gv = OpGetValue_new();
+				OpGetValue_set_value_string((OpGetValue*)gv, (char*)content);
+				OpDrawText_set_text((OpDrawText*)t, gv);
+				OpDrawText_set_text_mode((OpDrawText*)t, path);
+				OpBloc_append_Op(ret, t);
+				xmlFree(content);
+			}
+		}
+	}
+}
 
 void OpParseImport_import_parser_line(OpParseImport *self, xmlTextReaderPtr reader, OpBloc *ret)
 {
