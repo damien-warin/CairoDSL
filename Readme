@@ -1,55 +1,199 @@
-Petit interpeteur au dessus de la lib cairo.
+# CairoInterpreter
 
-Nécessite la lib cairo dev, la lib sdl2 dev si compilé avec sdl2, ainsi que flex et bison, uthash, et b64 pour le png via serveur
+**CairoInterpreter** est un petit interpréteur de langage de script construit au-dessus de la bibliothèque graphique [Cairo](https://www.cairographics.org/).
 
-https://github.com/rxi/log.c.git est utilisé pour les logs
+Il permet de décrire des opérations graphiques à l'aide d'un langage dédié, puis de produire des sorties graphiques, notamment au format SVG ou PNG.
 
-Sur un système à base d'Ubuntu/Debian, vous pouvez installer les outils nécessaires via le terminal :
+Le projet propose plusieurs modes d'utilisation :
+- **Bash** : exécution en ligne de commande.
+- **SDL2** : affichage graphique interactif.
+- **Qt** : interface graphique dédiée à l'édition et à l'exécution des scripts.
+- **CGI** : exécution depuis un serveur web avec une sortie XML adaptée à une interface cliente.
 
-sudo apt install build-essential cmake bison flex python3 libcairo2-dev libxml2-dev libsdl2-dev libb64-dev uthash-dev
+---
 
-Option NOSDL : désative la prise en charge de SDL2 pour la sortie graphique. Fonctionne alors 100% bash, utile poru le CGI.
+## 1. Dépendances
 
-option CGIMODE : active en plus la sortie totale xml avec les headers pour le serveur et prise en compte du CONTENT_LENGTH pour l'entrée.
+### Dépendances principales
 
-option QTGUI : compilation de l'interface graphique en Qt. Actuellement incompatible avec la compilation SDL2.
+Le projet nécessite :
+- **Cairo** : bibliothèque graphique.
+- **Flex** et **Bison** : génération de l'analyseur lexical et syntaxique.
+- **libxml2** : gestion des documents XML et import SVG.
+- **uthash** : bibliothèque de tables de hachage.
+- **SDL2** : affichage graphique (facultatif).
+- **libb64** : encodage Base64 des images PNG en mode serveur.
+- **Python 3** : utilisé par certains outils de génération du projet.
+- **CMake** et un compilateur C : compilation.
 
-Sur un système à base d'Ubuntu/Debian, vous pouvez installer les outils nécessaires via le terminal :
+La bibliothèque [log.c](https://github.com/rxi/log.c) est utilisée pour la gestion des journaux (logs).
 
-sudo apt install qt6-base-dev qt6-svg-dev libqt6widgets6 libqt6xml6 libqt6svgwidgets6 qt6-tools-dev linguist-qt6 librsvg2-dev
+### Installation sous Ubuntu / Debian
 
-Pour compiler (options pour avoir rapidement accès à l'interface graphique Qt) :
+Pour installer les dépendances principales :
 
+```bash
+sudo apt install build-essential cmake bison flex python3 \
+    libcairo2-dev libxml2-dev libsdl2-dev libb64-dev uthash-dev
+```
+
+### Dépendances supplémentaires pour Qt
+
+L'interface graphique Qt nécessite Qt 6 et quelques bibliothèques complémentaires :
+
+```bash
+sudo apt install qt6-base-dev qt6-svg-dev \
+    libqt6widgets6 libqt6xml6 libqt6svgwidgets6 \
+    qt6-tools-dev linguist-qt6 librsvg2-dev
+```
+
+---
+
+## 2. Options de compilation
+
+Plusieurs options CMake permettent d'adapter la compilation aux différents environnements.
+
+| Option | Description |
+|---|---|
+| `NOSDL` | Désactive la prise en charge de SDL2 pour la sortie graphique. L'interpréteur fonctionne alors sans dépendance à SDL2, notamment en mode Bash ou CGI. |
+| `CGIMODE` | Active le mode serveur CGI : génération d'une sortie XML complète avec les en-têtes HTTP et prise en compte de `CONTENT_LENGTH` pour la lecture des données en entrée. |
+| `QTGUI` | Compile l'interface graphique Qt. Actuellement incompatible avec la compilation SDL2. |
+| `BUILD_UNITTESTS` | Active ou désactive la compilation des tests unitaires. |
+| `UPDISTANT` | Option de compilation complémentaire du projet. |
+
+---
+
+## 3. Compilation
+
+### Compilation avec l'interface Qt
+
+Voici un exemple de configuration permettant de compiler rapidement l'interpréteur et son interface graphique Qt :
+
+```bash
 mkdir build
 cd build
-cmake ../ -DCMAKE_VERBOSE_MAKEFILE=false  -DBUILD_UNITTESTS=false -DUPDISTANT=true -DNOSDL=false -DCGIMODE=false -DQTGUI=true
+
+cmake ../ \
+    -DCMAKE_VERBOSE_MAKEFILE=false \
+    -DBUILD_UNITTESTS=false \
+    -DUPDISTANT=true \
+    -DNOSDL=true \
+    -DCGIMODE=false \
+    -DQTGUI=true
+
 make
+```
 
+Cette configuration génère notamment :
+- `CairoInterpreter` : l'interpréteur.
+- `CairoDSLEditor` : l'interface graphique Qt.
 
-Tester mode bash :
+Pour une compilation sans interface Qt, il suffit de désactiver `QTGUI`.
 
-Avec SDL2
+---
+
+## 4. Utilisation
+
+### 4.1. Mode Bash
+
+L'interpréteur peut être utilisé directement depuis un terminal.
+
+**Avec SDL2 :**
+
+```bash
 ./CairoInterpreter < fichier
+```
 
-Sans SDL2
+**Sans SDL2 :**
+
+```bash
 ./CairoInterpreter < fichier > output
+```
 
-Tester L'interface Graphique Qt (partie qt générée par ia pour première base) :
+Dans ce second cas, la sortie graphique est récupérée dans le fichier `output`.
 
+### 4.2. Interface graphique Qt
+
+L'éditeur Qt permet de travailler directement avec les scripts CairoDSL.
+
+Pour le lancer :
+
+```bash
 ./CairoDSLEditor
+```
 
-Tester mode serveur :
+La partie graphique de cette interface a été initialement générée à l'aide d'une IA, puis intégrée au projet.
 
-export CONTENT_LENGTH=$(wc -c fichier);
+### 4.3. Mode serveur CGI
+
+En mode CGI, l'interpréteur attend que la variable d'environnement `CONTENT_LENGTH` indique la taille des données reçues en entrée.
+
+Pour effectuer un test depuis le terminal :
+
+```bash
+export CONTENT_LENGTH=$(wc -c < fichier)
 ./CairoInterpreter < fichier
+```
 
-Le fichier Gui/Editor.html peut interroger la version cgi installée sur un server. Modifier URL_DE_LA_CGI dedans. Fichier généré par L'IA.
-Pour facilement l'utiliser avec le GUI en localhost sous linux :
+Le mode CGI produit une réponse XML complète, incluant les en-têtes nécessaires à son utilisation depuis un serveur web.
 
-copier CairoInterpreter dans Gui/cgi-bin/cairo.cgi
-modifier URL_DE_LA_CGI par "http://localhost:8000/cgi-bin/cairo.cgi"
-lancez un petit serveur python depuis le dossier Gui : python3 -m http.server --cgi 8000
-Et enfin ouvrez l'adresse suivante dans votre navigateur : http://localhost:8000/Editor.html
+---
 
-Fichier doc.odt ajouté pour expliquer le langage
-Langue Anglais si pas French, sinon french.
+## 5. Interface web
+
+Le projet contient également une interface web dans le fichier :
+
+```text
+Gui/Editor.html
+```
+
+Cette interface peut communiquer avec une version CGI de CairoInterpreter installée sur un serveur distant.
+
+Pour cela, il suffit de modifier la variable `URL_DE_LA_CGI` directement dans `Editor.html`, en indiquant l'adresse du script CGI.
+
+### Tester l'interface web en local sous Linux
+
+Il est possible de tester l'interface web localement, sans avoir à installer un véritable serveur CGI.
+
+1. Compiler CairoInterpreter avec `CGIMODE=true` et sans SDL2.
+2. Copier l'exécutable dans le répertoire CGI :
+
+```bash
+cp build/CairoInterpreter Gui/cgi-bin/cairo.cgi
+```
+
+3. Modifier `URL_DE_LA_CGI` dans `Gui/Editor.html` :
+
+```javascript
+URL_DE_LA_CGI = "http://localhost:8000/cgi-bin/cairo.cgi";
+```
+
+4. Depuis le répertoire `Gui`, lancer un serveur HTTP local :
+
+```bash
+python3 -m http.server --cgi 8000
+```
+
+5. Ouvrir l'adresse suivante dans un navigateur :
+
+```text
+http://localhost:8000/Editor.html
+```
+
+**Remarque :** le support CGI du serveur HTTP intégré à Python est réservé aux versions qui proposent encore ce module. Pour les versions récentes de Python, un autre serveur compatible CGI peut être nécessaire.
+
+---
+
+## 6. Documentation
+
+Le fichier `doc.odt` contient la documentation du langage CairoDSL.
+
+Il présente les principales instructions, les fonctionnalités du langage et leur utilisation.
+
+---
+
+## 7. Langues
+
+L'interface est disponible en deux langues :
+- Français si la langue du système est le français.
+- Anglais dans les autres cas.
