@@ -1,5 +1,7 @@
 # CairoInterpreter
 
+[English](README.md) | [Français](README.fr.md)
+
 **CairoInterpreter** est un petit interpréteur de langage de script construit au-dessus de la bibliothèque graphique [Cairo](https://www.cairographics.org/).
 
 Il permet de décrire des opérations graphiques à l'aide d'un langage dédié, puis de produire des sorties graphiques, notamment au format SVG ou PNG.
