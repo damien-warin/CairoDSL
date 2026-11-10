@@ -76,6 +76,31 @@ def main():
                                 
                         signature = f"{literal}({''.join(args)})"
                         smart_completions.append((literal, signature))
+                        
+                # Si la règle commence par un IDENTIFIER '=' TOKEN '('
+                if len(symbols) > 3 and symbols[0].isupper() and symbols[1] == "'='" and symbols[2].isupper() and symbols[3] == "'('":
+                    token = symbols[2]
+                    if token in token_to_literal:
+                        literal = token_to_literal[token]
+                        
+                        # Reconstruction propre des arguments de la règle Bison
+                        args = []
+                        depth = 0
+                        for sym in symbols[3:]:
+                            if sym == "'('":
+                                depth += 1
+                                if depth > 1: args.append(sym)
+                            elif sym == "')'":
+                                depth -= 1
+                                if depth == 0: break
+                                args.append(sym)
+                            elif depth > 0:
+                                # Nettoyage des symboles (ex: 'expression' -> expression, ',' -> ,)
+                                clean_sym = sym.strip("'")
+                                args.append(clean_sym)
+                                
+                        signature = f"{literal}({''.join(args)})"
+                        smart_completions.append((literal, signature))
         except Exception as e:
             print(f"Attention: Impossible de parser le XML Bison {xml_path}: {e}")
 
