@@ -600,14 +600,14 @@ void CanvaCtx_get_dash_array(CanvaCtx *self, double **v, int *number, double *of
 	if(*number > 0)
 	{
 		*v = malloc(sizeof(double) * (*number));
-		cairo_get_dash(self->cr, v, offset);
+		cairo_get_dash(self->cr, *v, offset);
 		String s;
 		String_init(&s);
 		int i;
-		for(i = 0; i < number; i++)
+		for(i = 0; i < *number; i++)
 		{
 			String_append_printf(&s, "%f", *v[i]);
-			if(i < number - 1)
+			if(i < *number - 1)
 				String_append_char_string(&s, ", ");
 		}
 		log_trace("Cairo %p get dash array width %s %d %f\n", self->cr, String_get_char_string(&s), *number, *offset);
