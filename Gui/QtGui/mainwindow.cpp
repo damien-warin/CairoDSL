@@ -34,6 +34,9 @@
 #include <QRegularExpression>
 #include <QScrollBar>
 
+#include <QTranslator>
+#include <QLocale>
+
 #include <QLineEdit>
 #include "CairoDslKeywords.h" // Fichier généré automatiquement par CMake
 
@@ -283,13 +286,13 @@ void MainWindow::setupUi() {
     QLabel *titleLabel = new QLabel("Cairo DSL", this);
     titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; margin-right: 10px;");
 
-    filenameLabel = new QLabel("Aucun fichier", this);
+    filenameLabel = new QLabel(tr("No file"), this);
     filenameLabel->setStyleSheet("color: #aaa; font-family: monospace; font-size: 12px;");
 
-    openBtn = new QPushButton("Ouvrir", this);
-    saveBtn = new QPushButton("Enregistrer", this);
-    saveasBtn = new QPushButton("Enregistrer Sous", this);
-    sendBtn = new QPushButton("Envoyer", this);
+    openBtn = new QPushButton(tr("Open"), this);
+    saveBtn = new QPushButton(tr("Save"), this);
+    saveasBtn = new QPushButton(tr("Save As"), this);
+    sendBtn = new QPushButton(tr("Send"), this);
     sendBtn->setObjectName("sendButton");
     sendBtn->setEnabled(false);
 
@@ -302,7 +305,7 @@ void MainWindow::setupUi() {
 
     // Zone d'édition et panneau d'environnement
     editor = new QPlainTextEdit(this);
-    editor->setPlaceholderText("Entrez votre code ici...");
+    editor->setPlaceholderText(tr("Type your code here..."));
     editor->setTabStopDistance(4 * fontMetrics().horizontalAdvance(' '));
 
     editor->installEventFilter(this);
@@ -325,15 +328,15 @@ void MainWindow::setupUi() {
     // Sélection et gestion des profils
     QHBoxLayout *profileLayout = new QHBoxLayout();
 
-    QLabel *environmentTitle = new QLabel("Environnement", environmentPanel);
+    QLabel *environmentTitle = new QLabel(tr("Environnement"), environmentPanel);
 
     environmentProfileCombo = new QComboBox(environmentPanel);
     environmentProfileCombo->setMinimumWidth(140);
 
     addEnvironmentProfileBtn =
-        new QPushButton("Nouveau profil", environmentPanel);
+        new QPushButton(tr("New profil"), environmentPanel);
     deleteEnvironmentProfileBtn =
-        new QPushButton("Supprimer profil", environmentPanel);
+        new QPushButton(tr("Delete profil"), environmentPanel);
 
     profileLayout->addWidget(environmentTitle);
     profileLayout->addWidget(environmentProfileCombo, 1);
@@ -342,7 +345,7 @@ void MainWindow::setupUi() {
 
     // Tableau des variables
     environmentTable = new QTableWidget(0, 2, environmentPanel);
-    environmentTable->setHorizontalHeaderLabels({"Nom", "Valeur"});
+    environmentTable->setHorizontalHeaderLabels({tr("Name"), tr("Value")});
     environmentTable->horizontalHeader()->setSectionResizeMode(
         0, QHeaderView::ResizeToContents);
     environmentTable->horizontalHeader()->setSectionResizeMode(
@@ -355,9 +358,9 @@ void MainWindow::setupUi() {
     QHBoxLayout *variableLayout = new QHBoxLayout();
 
     addEnvironmentVariableBtn =
-        new QPushButton("Ajouter variable", environmentPanel);
+        new QPushButton(tr("Add variable"), environmentPanel);
     removeEnvironmentVariableBtn =
-        new QPushButton("Supprimer variable", environmentPanel);
+        new QPushButton(tr("Delete variable"), environmentPanel);
 
     variableLayout->addWidget(addEnvironmentVariableBtn);
     variableLayout->addWidget(removeEnvironmentVariableBtn);
@@ -398,9 +401,9 @@ void MainWindow::setupUi() {
     outputHeader->setFixedHeight(40);
     QHBoxLayout *outputHeaderLayout = new QHBoxLayout(outputHeader);
 
-    QLabel *outputTitle = new QLabel("Résultat", this);
+    QLabel *outputTitle = new QLabel(tr("Result"), this);
     outputTitle->setStyleSheet("font-weight: bold;");
-    saveOutputBtn = new QPushButton("Enregistrer", this);
+    saveOutputBtn = new QPushButton(tr("Save"), this);
     saveOutputBtn->setEnabled(false);
 
     outputHeaderLayout->addWidget(outputTitle, 1);
@@ -427,7 +430,7 @@ void MainWindow::setupUi() {
     messagesHeader->setObjectName("panelHeader");
     messagesHeader->setFixedHeight(40);
     QHBoxLayout *messagesHeaderLayout = new QHBoxLayout(messagesHeader);
-    QLabel *messagesTitle = new QLabel("Messages", this);
+    QLabel *messagesTitle = new QLabel(tr("Messages"), this);
     messagesTitle->setStyleSheet("font-weight: bold;");
     messagesHeaderLayout->addWidget(messagesTitle);
 
@@ -1020,7 +1023,7 @@ void MainWindow::clearOutput() {
     outputDisplay->clear();
 
     // 2. Affiche le placeholder
-    showOutputPlaceholder("Aucun résultat");
+    showOutputPlaceholder(tr("No result to display"));
 
     // 3. Réinitialise les variables de sortie
     currentOutputData.clear();
@@ -1040,7 +1043,7 @@ void MainWindow::showOutputPlaceholder(const QString &text) {
 // Met à jour le label affichant le nom du fichier ouvert
 void MainWindow::updateFilename() {
     if (currentFilePath.isEmpty()) {
-        filenameLabel->setText("Aucun fichier");
+        filenameLabel->setText(tr("No File"));
     } else {
         filenameLabel->setText(QFileInfo(currentFilePath).fileName());
     }
@@ -1055,7 +1058,7 @@ void MainWindow::loadEnvironmentProfiles()
         settings.value("Environment/ProfileNames").toStringList();
 
     if (profiles.isEmpty()) {
-        profiles << "Défaut";
+        profiles << tr("Default");
         settings.setValue("Environment/ProfileNames", profiles);
     }
 

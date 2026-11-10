@@ -213,7 +213,7 @@ if( QTGUI)
 	)
 	
 	
-	find_package(Qt6 REQUIRED COMPONENTS Widgets Xml SvgWidgets)
+	find_package(Qt6 REQUIRED COMPONENTS Widgets Xml SvgWidgets LinguistTools)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(RSVG REQUIRED IMPORTED_TARGET librsvg-2.0)
 	
@@ -229,6 +229,9 @@ if( QTGUI)
 	    ${FLEX_Lexer_OUTPUTS}
 	    ${GENERATED_KEYWORDS_FILE}
 	)
+	
+	set(TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/translations/cairodsl.ts)
+	qt_add_translations(CairoDSLEditor TS_FILES ${TS_FILES})
 	
 	include_directories(CairoDSLEditor "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/" ${Cairo_INCLUDE_DIR} ${strings_SOURCE_DIR} ${linkedlists_SOURCE_DIR} ${logs_SOURCE_DIR}/src)
 	
