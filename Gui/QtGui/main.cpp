@@ -14,7 +14,6 @@ extern "C"
 }
 
 int main(int argc, char *argv[]) {
-    std::setlocale(LC_ALL, "C");//Rétablie la locale "C" globale pour le parsing "classique" des nombre à virgule.
 
 	QLoggingCategory::setFilterRules(
 	        "*.debug=false\n"
@@ -40,6 +39,7 @@ int main(int argc, char *argv[]) {
 		qDebug() << "Langue système non française, affichage en anglais par défaut.";
 	}
 
+    std::setlocale(LC_ALL, "C");//Rétablie la locale "C" globale pour le parsing "classique" des nombre à virgule.
 
     MainWindow w;
     w.setWindowTitle("Cairo DSL Editor");
