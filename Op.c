@@ -390,6 +390,14 @@ void OpContext_init(OpContext *self)
 
 void OpContext_terminate(OpContext *self)
 {
+	OpContext_free_variables(self);
+	OpVariable_terminate(&self->current_value);
+	LinkedList_do_to_all(&self->messages, (void(*)(void*,void*))OpMessage_free, NULL);
+	LinkedList_finalize(&self->messages);
+}
+
+void OpContext_free_variables(OpContext *self)
+{
 	if(self->number_of_variables > 0)
 	{
 		if(self->variables != NULL)
@@ -404,9 +412,7 @@ void OpContext_terminate(OpContext *self)
 			self->variables = NULL;
 		}
 	}
-	OpVariable_terminate(&self->current_value);
-	LinkedList_do_to_all(&self->messages, (void(*)(void*,void*))OpMessage_free, NULL);
-	LinkedList_finalize(&self->messages);
+	self->number_of_variables = 0;
 }
 
 void OpContext_free(OpContext *self)
@@ -421,6 +427,12 @@ void OpContext_free(OpContext *self)
 void OpContext_export_messages_to_xml(OpContext *self, String *xml)
 {
 	LinkedList_do_to_all(&self->messages, (void(*)(void*, void*))OpMessage_append_to_string_xml, xml);
+}
+
+
+void OpContext_report_message(OpContext *self, Op *sender, const char *message)
+{
+	OpContext_set_running_state(self, sender, self->state, message);
 }
 
 void OpContext_set_running_state(OpContext *self, Op *sender, OpRunningState state, const char *message)
@@ -556,7 +568,7 @@ size_t OpContext_get_variable_number(OpContext *self, const char *name)
 		for(i = 0; i < self->number_of_variables; i++)
 		{
 			OpVariable *v = self->variables[i];
-			if(strcmp(OpVariable_get_name(v), name) == 0)
+			if(strcasecmp(OpVariable_get_name(v), name) == 0)
 			{
 				found = 1;
 				return i;
@@ -1209,7 +1221,7 @@ int OpPrintMessage_execute(OpPrintMessage *self, OpContext *ctx)
 		OpVariable_copy(&val, OpContext_get_current_value(ctx));
 		String_append_printf(&s, "Message '%s' : ", self->message);
 		OpVariable_content_to_string(&val, &s);
-		OpContext_set_running_state(ctx, (Op*)self, Run, String_get_char_string(&s));
+		OpContext_report_message(ctx, (Op*)self, String_get_char_string(&s));
 		log_trace("%s\n", String_get_char_string(&s));
 	}
 	String_finalize(&s);

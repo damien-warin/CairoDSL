@@ -85,6 +85,7 @@ void OpModule_add_to_root(OpModule *self, Op *op)
 void OpModule_duplicate_context(OpModule *self, OpCanvaContext *ctx)
 {
 	OpCanvaContext *newc = OpCanvaContext_new_from_other(ctx);
+	OpContext_free_variables((OpContext*)newc);//Must free vars if module if declared after some variables creation in the code.
 	OpModule_set_context(self, newc);
 }
 
