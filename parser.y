@@ -473,12 +473,31 @@ statement:
       {
 		  	if(OpParser_get_inside_module(p) > 0)
 			{
-	      		free($2);
-	      		$2 = (char*)NULL;
 	      		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
 	      		LinkedList_free($4);
 	      		$4 = (LinkedList*)NULL;
-		        yyerror(root, p, "Definition of a module inside another module");
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Definition of module '%s' inside another module", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
+		        YYERROR;
+			}
+      		ssize_t module_num_check = OpProgram_check_module_number(OpParser_get_program(p), $2);
+		  	if(module_num_check >= 0)
+			{
+	      		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
+	      		LinkedList_free($4);
+	      		$4 = (LinkedList*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module '%s' already exist", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
 		        YYERROR;
 			}
       		size_t module_num = OpProgram_get_module_number(OpParser_get_program(p), $2);
@@ -506,9 +525,25 @@ statement:
       {
 		  	if(OpParser_get_inside_module(p) > 0)
 			{
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Definition of module '%s' inside another module", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
 	      		free($2);
 	      		$2 = (char*)NULL;
-		        yyerror(root, p, "Definition of a module inside another module");
+		        YYERROR;
+			}
+      		ssize_t module_num_check = OpProgram_check_module_number(OpParser_get_program(p), $2);
+		  	if(module_num_check >= 0)
+			{
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module '%s' already exist", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
 		        YYERROR;
 			}
       		size_t module_num = OpProgram_get_module_number(OpParser_get_program(p), $2);
