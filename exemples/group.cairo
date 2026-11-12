@@ -22,7 +22,7 @@ translate(50, 50)
 {
 //Recall group a
     usegroup(a);
-    paint(0.5);
+    paint(127);
 }
 
 translate(145, 45)color(green())rectangle(0, 0, 100, 100);
@@ -46,5 +46,5 @@ translate(145, 45+100)color(green())rectangle(0, 0, 100, 100);
 translate(150, 50+100)
 {
     usegroup(b);
-    paint(0.5);
+    paint(127);
 }

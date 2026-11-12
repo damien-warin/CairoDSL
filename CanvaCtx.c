@@ -320,6 +320,7 @@ void CanvaCtx_paint(CanvaCtx *self)
 
 void CanvaCtx_paint_with_alpha(CanvaCtx *self, double a)
 {
+	a /= 255;
 	log_trace("Cairo paint %p with alpha %f\n", self->cr, a);
 	cairo_paint_with_alpha(self->cr, a);
 	self->color_set_up = false;
