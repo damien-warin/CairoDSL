@@ -8,16 +8,16 @@ module rotate_around(center, angle)
 
 
 a=newradial(300, 300, 10, 300, 300, 300);
-addstop(a, 0.0, 1, 0, 0, 1);
-addstop(a, 1.0, 0, 0, 1, 1);
-addstop(a, 0.5, 0, 1, 0, 1);
+addstop(a, 0.0, 255, 0, 0, 255);
+addstop(a, 1.0, 0, 0, 255, 255);
+addstop(a, 0.5, 0, 255, 0, 255);
 usepattern(a);
 paint();
 
 b=newlinear(0, 0, 100, 100);
-addstop(b, 0.0, 1, 0, 0, 1);
-addstop(b, 0.5, 0, 1, 0, 0.5);
-addstop(b, 1.0, 0, 0, 1, 1);
+addstop(b, 0.0, 255, 0, 0, 255);
+addstop(b, 0.5, 0, 255, 0, 127);
+addstop(b, 1.0, 0, 0, 255, 255);
 
 
 

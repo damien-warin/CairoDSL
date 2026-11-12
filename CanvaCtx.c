@@ -395,8 +395,15 @@ int CanvaCtx_add_stop_rgba(CanvaCtx *self, size_t p, double o, double r, double 
 		String_append_char_string(err_msg, "Adding Stop color to a pattern not linear or radial type");
 		return -1;
 	}
+	r /= 255.0;
+	g /= 255.0;
+	b /= 255.0;
+
 	if(!isnan(a))
+	{
+		a /= 255.0;
 		cairo_pattern_add_color_stop_rgba(pattern, o, r, g, b, a);
+	}
 	else
 		cairo_pattern_add_color_stop_rgb(pattern, o, r, g, b);
 
