@@ -1,4 +1,3 @@
-*.proto.h
 parser.tab.c
 parser.tab.h
 parser.xml
