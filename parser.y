@@ -1390,6 +1390,17 @@ statement:
 		OpSetFontSize_set_size(op, $3);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
 	  }
+      	| FONTSIZE '(' expression ')' block
+      {
+    	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+      	OpSetFontSize *fs = (OpSetFontSize*)OpSetFontSize_new();
+		OpSetFontSize_set_size(fs, $3);
+      	$$ = (Op*)op;
+        OpBloc_append_Op(op, (Op*)fs);
+        OpBloc_append_Op(op, $5);
+  		Op_set_source_pos((Op*)fs, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+	  }
       	| FONT '(' TEXTCONTENT ',' TEXTCONTENT ',' TEXTCONTENT ')' ';'
       {
 		OpFontSelector *op = (OpFontSelector*)OpFontSelector_new();
@@ -1401,6 +1412,22 @@ statement:
   		free($3);
   		free($5);
   		free($7);
+	  }
+      	| FONT '(' TEXTCONTENT ',' TEXTCONTENT ',' TEXTCONTENT ')' block
+      {
+    	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+		OpFontSelector *fs = (OpFontSelector*)OpFontSelector_new();
+      	$$ = (Op*)op;
+		OpFontSelector_set_font_name(fs, $3);
+		OpFontSelector_set_font_slant(fs, $5);
+		OpFontSelector_set_font_weight(fs, $7);
+  		Op_set_source_pos((Op*)fs, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		free($3);
+  		free($5);
+  		free($7);
+        OpBloc_append_Op(op, (Op*)fs);
+        OpBloc_append_Op(op, $9);
 	  }
       	| TEXT '(' expression ')' ';'
       {
