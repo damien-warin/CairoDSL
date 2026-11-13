@@ -1878,7 +1878,7 @@ OpIsa OpGetDashArray_isa = {
 int OpGetDashArray_execute(Op *self, OpCanvaContext *canvactx)
 {
 	int ret = 0;
-	double *dash;
+	double *dash = NULL;
 	double offset;
 	int count;
 	OpContext *ctx = (OpContext*)canvactx;
