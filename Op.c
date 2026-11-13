@@ -2104,15 +2104,34 @@ int OpIntervalGen_execute(OpIntervalGen *self, OpContext *ctx)
 				ret = Op_execute_get_double(self->step, (Op*)self, ctx, &step);
 				if(ret == 0)
 				{
-					OpVariable v;
-					OpVariable_init(&v);
-					while(min <= max)
+					if(double_eq(step, 0) == 0)
 					{
-						OpVariable_append_double(&v, min);
-						min += step;
+						OpVariable v;
+						OpVariable_init(&v);
+						if(step > 0)
+						{
+							while(min <= max)
+							{
+								OpVariable_append_double(&v, min);
+								min += step;
+							}
+						}
+						else
+						{
+							while(min >= max)
+							{
+								OpVariable_append_double(&v, min);
+								min += step;
+							}
+						}
+						OpContext_copy_variable_to_current_value(ctx, &v);
+						OpVariable_terminate(&v);
 					}
-					OpContext_copy_variable_to_current_value(ctx, &v);
-					OpVariable_terminate(&v);
+					else
+					{
+						ret = -1;
+						OpContext_set_running_state(ctx, (Op*)self, Error, "Interval Generated with step = 0");
+					}
 				}
 			}
 			else
