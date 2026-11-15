@@ -1150,7 +1150,25 @@ Messages are retained in the CairoDSL context, along with errors. They are then 
 - **Command-line interface:** Messages and errors are sent to `stderr`, while graphical output is sent to `stdout`.
 - **CGI interface:** Messages and errors are included in the XML response.
 
-### 11.4 Initial graphics-environment values
+### 11.4 CGI mode security limitation
+
+CGI mode currently has no built-in mechanism for limiting the execution time of programs.
+
+In particular, infinite loops are not detected. A program containing, for example:
+
+```cairo
+while (1) {
+    // ...
+}
+```
+
+can therefore monopolize the CGI process executing it indefinitely.
+
+Running several programs of this kind simultaneously can exhaust server resources and make the service unavailable. This behavior can be exploited to cause a denial of service (DoS).
+
+**Consequently, CGI mode must not be exposed to untrusted users without additional safeguards**, including an external mechanism for limiting execution time and the number of simultaneous executions.
+
+### 11.5 Initial graphics-environment values
 
 When the graphics context is initialized, CairoDSL uses the following default values:
 
