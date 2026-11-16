@@ -576,6 +576,7 @@ statement:
 			Op *op = OpParseImport_new();
 	      	OpDrawImport_set_number((OpDrawImport*)$$, op);
 			OpParseImport_set_name((OpParseImport*)op, $3);
+			OpParseImport_set_prefix((OpParseImport*)op, OpParser_get_filename_prefix(p));
 			OpParseImport_set_program((OpParseImport*)op, OpParser_get_program(p));
       		Op_set_source_pos(op, @1.first_line, @1.first_column, @3.last_line, @3.last_column);
       		Op_set_source_pos($$, @1.first_line, @1.first_column, @3.last_line, @3.last_column);
@@ -1705,6 +1706,7 @@ expression:
 			$$ = OpParseImport_new();
 			OpParseImport_set_name((OpParseImport*)$$, $3);
 			OpParseImport_set_program((OpParseImport*)$$, OpParser_get_program(p));
+			OpParseImport_set_prefix((OpParseImport*)$$, OpParser_get_filename_prefix(p));
       		Op_set_source_pos($$, @1.first_line, @1.first_column, @3.last_line, @3.last_column);
       }
       | GETIMPORTEXTENTS '(' expression ')'

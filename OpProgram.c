@@ -261,6 +261,11 @@ void OpParser_set_filename_prefix(OpParser *self, String *prefix)
 	log_trace("Filename Prefix : '%s'\n", String_get_char_string(&self->filename_prefix));
 }
 
+String *OpParser_get_filename_prefix(OpParser *self)
+{
+	return &self->filename_prefix;
+}
+
 int OpParser_parse(OpParser *self, String *s)
 {
 	int fd = open("/tmp/foo", O_CREAT|O_TRUNC|O_WRONLY, 0666);

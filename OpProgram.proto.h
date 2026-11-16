@@ -19,6 +19,7 @@ void OpProgram_set_root(OpProgram *self, Op *root);
 OpParser *OpParser_new(void);
 void OpParser_init(OpParser *self);
 void OpParser_set_filename_prefix(OpParser *self, String *prefix);
+String *OpParser_get_filename_prefix(OpParser *self);
 int OpParser_parse(OpParser *self, String *s);
 int OpParser_check_if_include_exist(OpParser *self, const char *name);
 void OpParser_parse_include(OpParser *self, const char *name);
