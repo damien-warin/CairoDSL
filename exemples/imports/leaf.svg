@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 -16 32 32">
+
+  <path d="M -12 10
+           C -14 -3, -3 -14, 12 -12
+           C 14 3, 3 14, -12 10 Z" fill="#d5e8dc" stroke="#315f50" stroke-width="1.2"></path>
+
+  <path d="M -12 10 Q 0 -2, 12 -12" fill="none" stroke="#315f50" stroke-width="1"></path>
+
+</svg>
