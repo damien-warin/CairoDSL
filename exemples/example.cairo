@@ -10,7 +10,7 @@ bg_gradient = newradial(400, 300, 50, 400, 300, 450) {
 addstop(0.0, 255, 200, 100, 255);
 addstop(0.5, 200, 80, 120, 200);
 addstop(1.0, 20, 20, 40, 0);
-}
+};
 
 // Dessin de l'arrière-plan avec le motif
 usepattern(bg_gradient);
@@ -49,7 +49,7 @@ etoile_group = group() {
 color(255, 255, 255, 255);
 rectangle(-50, -50, 100, 100);
 fill();
-}
+};
 
 // 5. Instanciation du module avec un bloc enfant (children)
 FleurSpatiale(400, 300, 12, 180) {

@@ -14,7 +14,7 @@ b=group()
 {
 color(red())rectangle(0, 0, 50, 50);
 color(blue())arc(50, 50, 30, 0, 2*PI());
-}
+};
 
 translate(45, 45)color(green())rectangle(0, 0, 100, 100);
 

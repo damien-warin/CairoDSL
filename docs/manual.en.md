@@ -294,8 +294,6 @@ id = group() {
 
 The returned identifier can be stored and used again to reuse the group.
 
-**Syntax note:** Unlike a regular instruction, the closing brace of a `group()` block must not currently be followed by a semicolon.
-
 **Using groups**
 
 - `usegroup(id)`: Selects the group as the current graphics source.
@@ -347,8 +345,6 @@ p = newlinear(0, 0, 200, 0) {
 In this context, the pattern identifier is implicit. The `addstop()` function operates directly on the pattern currently being created.
 
 This syntax is also available with `newradial()`.
-
-**Syntax note:** As with `group()`, the closing brace of a pattern-creation block must not currently be followed by a semicolon.
 
 **Using patterns**
 

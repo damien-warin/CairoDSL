@@ -461,10 +461,6 @@ sortie.
 
 L'identifiant retourné permet de conserver et de réutiliser le groupe.
 
-**Attention syntaxique :** contrairement à une instruction classique, la
-fermeture du bloc *group()* ne doit actuellement pas être suivie d'un
-point-virgule.
-
 ### Utilisation des groupes
 
 - *usegroup(id)* : Sélectionne le groupe comme source graphique
@@ -529,10 +525,6 @@ Dans ce contexte, l'identifiant du pattern est implicite. La fonction
 *addstop()* utilise directement le pattern en cours de création.
 
 Cette syntaxe est également disponible avec *newradial()*.
-
-**Attention syntaxique :** comme pour *group()*, le bloc de création
-d'un pattern ne doit actuellement pas être suivi d'un point-virgule
-après son accolade fermante.
 
 ### Utilisation des patterns
 

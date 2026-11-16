@@ -1524,7 +1524,7 @@ statement:
       	$$ = OpPushGroup_new();
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
-      | IDENTIFIER '=' GROUP '(' ')' block
+      | IDENTIFIER '=' GROUP '(' ')' block ';'
       {
       	$$ = OpCanvaBloc_new();
       	Op *op = OpPushGroup_new();
@@ -1551,7 +1551,7 @@ statement:
 	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
   	    OpParser_set_current_pattern(p, var_num);
       }
-      			 block
+      			 block ';'
       {
       	$$ = OpCanvaBloc_new();
       	OpNewLinear *op = (OpNewLinear*)OpNewLinear_new();
@@ -1585,7 +1585,7 @@ statement:
 	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
   	    OpParser_set_current_pattern(p, var_num);
       }
-      			 block
+      			 block ';'
       {      
       	$$ = OpCanvaBloc_new();
       	OpNewRadial *op = (OpNewRadial*)OpNewRadial_new();
