@@ -830,6 +830,7 @@ void MainWindow::saveSourceAs() {
 // Remplacement du Fetch CGI par l'appel Bibliothèque
 void MainWindow::processCode() {
     clearMessages();
+    clearOutput();
     addLocalMessage("Run", "Traitement en cours par la bibliothèque C++...");
 
     applyEnvironmentProfile();
@@ -846,7 +847,7 @@ void MainWindow::processCode() {
 void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &out, bool is_xml, int ret) {
     QDomDocument doc;
     if (!doc.setContent(xmlText)) {
-        clearOutput();
+
         addLocalMessage("ParseError", "XML invalide retourné par la bibliothèque.");
         return;
     }
