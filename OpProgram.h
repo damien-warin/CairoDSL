@@ -55,6 +55,8 @@ typedef struct op_parser
 	String filename_prefix;
 	int depth;
 	int inside_loop;
+	size_t auto_gen_vars;
+	Op *temp;
 }OpParser;
 
 typedef struct op_parser_hash_elt

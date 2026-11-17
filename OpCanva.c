@@ -3432,7 +3432,7 @@ int OpAddStopColor_execute(OpAddStopColor *self, OpCanvaContext *canvactx)
 					r=d[i++];
 					g=d[i++];
 					b=d[i++];
-					if(size > 5)
+					if(size > 4)
 						a=d[i];
 				}
 			}
@@ -3654,7 +3654,15 @@ int OpRecallPattern_execute(OpRecallPattern *self, OpCanvaContext *canvactx)
 	if(ret == 0)
 	{
 		log_trace("Op Recall Pattern %f\n", n);
-		CanvaCtx_recall_pattern(canvactx->Canva, n);
+		if(CanvaCtx_recall_pattern(canvactx->Canva, n) != 0)
+		{
+			String msg;
+			String_init(&msg);
+			String_append_printf(&msg, "Recall pattern %g give error", n);
+			ret = -1;
+			OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&msg));
+			String_finalize(&msg);
+		}
 	}
 	return ret;
 }

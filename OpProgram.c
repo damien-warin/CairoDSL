@@ -246,6 +246,24 @@ void OpParser_init(OpParser *self)
 	self->current_c = NULL;
 	self->current_m = NULL;
 	self->current_pattern = -1;
+	self->auto_gen_vars = 0;
+	self->temp = NULL;
+}
+
+void OpParser_set_temp_op(OpParser *self, Op *op)
+{
+	self->temp = op;
+}
+
+Op *OpParser_get_temp_op(OpParser *self)
+{
+	return self->temp;
+}
+
+void OpParser_auto_generate_var_name(OpParser *self, String *name)
+{
+	String_empty(name);
+	String_append_printf(name, "@auto_gen_var_%zu", self->auto_gen_vars++);
 }
 
 void OpParser_set_filename_prefix(OpParser *self, String *prefix)
@@ -387,6 +405,8 @@ void OpParser_terminate(OpParser *self)
 	String_finalize(&self->filename_prefix);
 	LinkedList_do_to_all(&self->filenames, (void(*)(void*,void*))String_free, NULL);
 	LinkedList_finalize(&self->filenames);
+	if(self->temp != NULL)
+		Op_free(self->temp);
 }
 
 void OpParser_free(OpParser *self)

@@ -349,18 +349,23 @@ double CanvaCtx_add_pattern(CanvaCtx *self, cairo_pattern_t *p)
 	return (double)num;
 }
 
-void CanvaCtx_recall_pattern(CanvaCtx *self, double n)
+int CanvaCtx_recall_pattern(CanvaCtx *self, double n)
 {
-	if(n > self->nb_patterns)
-		return;
+	if(n >= self->nb_patterns)
+		return -1;
 	cairo_pattern_t *p = self->patterns[(size_t)n];
 	if(p != NULL)
 	{
 		log_trace("Cairo %p Recall pattern %f => %p\n", self->cr, n, p);
 		cairo_set_source(self->cr, p);
+		return 0;
 	}
 	else
+	{
 		log_trace("Recall pattern %f is null\n", n);
+		return -1;
+	}
+	return 0;
 }
 
 double CanvaCtx_new_linear_pattern(CanvaCtx *self, double x1, double y1, double x2, double y2)

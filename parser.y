@@ -169,7 +169,7 @@ Op *root;
 
 
 %type <program> program
-%type <node> block expression statements statement
+%type <node> block expression statements statement NewPatternFirstBlock
 %type <list> call_args def_args
 %type <var> number_list string_list
 %destructor { free($$); } <string>
@@ -258,6 +258,7 @@ block:
 ;
 
 statements:
+		%empty
 		{
 			OpBloc *op = (OpBloc*)OpBloc_new();
           $$ = (Op*)op;
@@ -1525,93 +1526,6 @@ statement:
       	$$ = OpPushGroup_new();
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
-      | IDENTIFIER '=' GROUP '(' ')' block ';'
-      {
-      	$$ = OpCanvaBloc_new();
-      	Op *op = OpPushGroup_new();
-      	Op_set_source_pos(op, @3.first_line, @3.first_column, @5.last_line, @5.last_column);
-      	OpBloc_append_Op((OpBloc*)$$, op);
-      	OpBloc_append_Op((OpBloc*)$$, $6);
-      	Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-      	op = OpPopGroup_new();
-      	
-  	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
-  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
-  		OpSetVariable_set_variable_number(opset, var_num);
-  		OpSetVariable_set_value(opset, op);
-  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		free($1);
-      		
-      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
-      }
-      | IDENTIFIER '=' NEWLINEAR '(' expression ','
-                 expression ','
-                 expression ','
-                 expression ')'
-      {
-	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
-  	    OpParser_set_current_pattern(p, var_num);
-      }
-      			 block ';'
-      {
-      	$$ = OpCanvaBloc_new();
-      	OpNewLinear *op = (OpNewLinear*)OpNewLinear_new();
-		OpNewLinear_set_x1(op, $5);
-      	OpNewLinear_set_y1(op, $7);
-      	OpNewLinear_set_x2(op, $9);
-      	OpNewLinear_set_y2(op, $11);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		Op_set_source_pos((Op*)op, @3.first_line, @3.first_column, @12.last_line, @12.last_column);
-  		
-
-  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
-  		OpSetVariable_set_variable_number(opset, (size_t)OpParser_get_current_pattern(p));
-  		OpSetVariable_set_value(opset, (Op*)op);
-  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		free($1);
-  		
-      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
-      	
-      	OpBloc_append_Op((OpBloc*)$$, $14);
-      	
-      	OpParser_set_current_pattern(p, (ssize_t)-1);
-      }
-        | IDENTIFIER '=' NEWRADIAL '(' expression ','
-                 expression ','
-                 expression ','
-                 expression ','
-                 expression ','
-                 expression ')'
-      {
-	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), $1);
-  	    OpParser_set_current_pattern(p, var_num);
-      }
-      			 block ';'
-      {      
-      	$$ = OpCanvaBloc_new();
-      	OpNewRadial *op = (OpNewRadial*)OpNewRadial_new();
-		OpNewRadial_set_x1(op, $5);
-      	OpNewRadial_set_y1(op, $7);
-      	OpNewRadial_set_r1(op, $9);
-      	OpNewRadial_set_x2(op, $11);
-      	OpNewRadial_set_y2(op, $13);
-      	OpNewRadial_set_r2(op, $15);
-  		Op_set_source_pos((Op*)op, @3.first_line, @3.first_column, @15.last_line, @15.last_column);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		
-
-  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new() ;
-  		OpSetVariable_set_variable_number(opset, (size_t)OpParser_get_current_pattern(p));
-  		OpSetVariable_set_value(opset, (Op*)op);
-  		Op_set_source_pos((Op*)opset, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		free($1);
-  		
-      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
-      	
-      	OpBloc_append_Op((OpBloc*)$$, $18);
-      	
-      	OpParser_set_current_pattern(p, (ssize_t)-1);
-      }
       	| USEPATTERN '(' expression ')' ';'
       {
 		OpRecallPattern *op = (OpRecallPattern*)OpRecallPattern_new();
@@ -1701,6 +1615,18 @@ expression:
       	$$ = OpPopGroup_new();
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
+      | GROUP '(' ')' block
+      {
+      	$$ = OpCanvaBloc_new();
+      	Op *op = OpPushGroup_new();
+      	Op_set_source_pos(op, @1.first_line, @1.first_column, @4.last_line, @4.last_column);
+      	OpBloc_append_Op((OpBloc*)$$, op);
+      	OpBloc_append_Op((OpBloc*)$$, $4);
+      	Op_set_source_pos($$, @4.first_line, @4.first_column, @4.last_line, @4.last_column);
+      	op = OpPopGroup_new();
+  		Op_set_source_pos((Op*)op, @1.first_line, @1.first_column, @4.last_line, @4.last_column);
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)op);
+      }
       | IMPORT '(' expression ')'
       {
 			$$ = OpParseImport_new();
@@ -1722,21 +1648,47 @@ expression:
                  expression ','
                  expression ')'
       {
+      	if(OpParser_get_temp_op(p) != NULL)
+      	{
+  			String s;
+  			String_init(&s);
+  			String_append_char_string(&s, "Define new pattern inside Pattern Definition Block");
+  			yyerror(root, p, String_get_char_string(&s));
+  			String_finalize(&s);
+  			YYERROR;
+      	}
       	OpNewLinear *op = (OpNewLinear*)OpNewLinear_new();
-      	$$ = (Op*)op;
+      	OpParser_set_temp_op(p, (Op*)op);
 		OpNewLinear_set_x1(op, $3);
       	OpNewLinear_set_y1(op, $5);
       	OpNewLinear_set_x2(op, $7);
       	OpNewLinear_set_y2(op, $9);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos((Op*)op, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+      NewPatternFirstBlock
+      {
+        $$ = $12;
       }
       
     | NEWLINEAR '(' expression ')'
       {
+    	if(OpParser_get_temp_op(p) != NULL)
+      	{
+  			String s;
+  			String_init(&s);
+  			String_append_char_string(&s, "Define new pattern inside Pattern Definition Block");
+  			yyerror(root, p, String_get_char_string(&s));
+  			String_finalize(&s);
+  			YYERROR;
+      	}
       	OpNewLinear *op = (OpNewLinear*)OpNewLinear_new();
-      	$$ = (Op*)op;
+      	OpParser_set_temp_op(p, (Op*)op);
 		OpNewLinear_set_params(op, $3);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos((Op*)op, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+      NewPatternFirstBlock
+      {
+        $$ = $6;
       }
       
     | NEWRADIAL '(' expression ','
@@ -1746,24 +1698,52 @@ expression:
                  expression ','
                  expression ')'
       {
+    	if(OpParser_get_temp_op(p) != NULL)
+      	{
+  			String s;
+  			String_init(&s);
+  			String_append_char_string(&s, "Define new pattern inside Pattern Definition Block");
+  			yyerror(root, p, String_get_char_string(&s));
+  			String_finalize(&s);
+  			YYERROR;
+      	}
       	OpNewRadial *op = (OpNewRadial*)OpNewRadial_new();
-      	$$ = (Op*)op;
+      	
+      	OpParser_set_temp_op(p, (Op*)op);
 		OpNewRadial_set_x1(op, $3);
       	OpNewRadial_set_y1(op, $5);
       	OpNewRadial_set_r1(op, $7);
       	OpNewRadial_set_x2(op, $9);
       	OpNewRadial_set_y2(op, $11);
       	OpNewRadial_set_r2(op, $13);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos((Op*)op, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+      NewPatternFirstBlock
+      {
+        $$ = $16;
       }
       
     | NEWRADIAL '(' expression ')'
       {
+    	if(OpParser_get_temp_op(p) != NULL)
+      	{
+  			String s;
+  			String_init(&s);
+  			String_append_char_string(&s, "Define new pattern inside Pattern Definition Block");
+  			yyerror(root, p, String_get_char_string(&s));
+  			String_finalize(&s);
+  			YYERROR;
+      	}
       	OpNewRadial *op = (OpNewRadial*)OpNewRadial_new();
-      	$$ = (Op*)op;
+      	OpParser_set_temp_op(p, (Op*)op);
 		OpNewRadial_set_params(op, $3);
-  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos((Op*)op, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
+      NewPatternFirstBlock
+      {
+        $$ = $6;
+      }
+      
       
       | TEXTCONTENT
       {
@@ -2231,6 +2211,49 @@ expression:
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
 
+;
+
+NewPatternFirstBlock:
+	%empty
+    {
+        /* Construction classique de Newlinear */
+        $$ = OpParser_get_temp_op(p);
+    }
+  | {
+       	String var_name;
+      	String_init(&var_name);
+      	OpParser_auto_generate_var_name(p, &var_name);
+	    size_t var_num = OpContext_get_variable_number(OpParser_get_current_context(p), String_get_char_string(&var_name));
+  	    OpParser_set_current_pattern(p, var_num);
+  	    String_finalize(&var_name);
+  	}
+  	block
+    {
+        /* Construction de Newlinear avec le second bloc */
+      	size_t var_num = (size_t)OpParser_get_current_pattern(p);
+      	$$ = OpCanvaBloc_new();
+
+  		Op_set_source_pos($$, @2.first_line, @2.first_column, @2.last_line, @2.last_column);
+  		
+
+  		OpSetVariable *opset = (OpSetVariable*)OpSetVariable_new();
+  		OpSetVariable_set_variable_number(opset, var_num);
+  		OpSetVariable_set_value(opset, OpParser_get_temp_op(p));
+  		Op_set_source_pos((Op*)opset, @2.first_line, @2.first_column, @2.last_line, @2.last_column);
+  		
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)opset);
+      	
+      	OpBloc_append_Op((OpBloc*)$$, $2);
+      	
+  		OpGetVariable *opget = (OpGetVariable*)OpGetVariable_new();
+  		OpGetVariable_set_variable_number(opget, var_num);
+  		
+      	OpBloc_append_Op((OpBloc*)$$, (Op*)opget);
+      	
+      	OpParser_set_current_pattern(p, (ssize_t)-1);
+      	
+      	OpParser_set_temp_op(p, NULL);
+    }
 ;
 
 %%

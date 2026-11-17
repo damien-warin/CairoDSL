@@ -29,7 +29,7 @@ void CanvaCtx_paint_with_alpha(CanvaCtx *self, double a);
 void CanvaCtx_push_group(CanvaCtx *self);
 double CanvaCtx_pop_group(CanvaCtx *self);
 double CanvaCtx_add_pattern(CanvaCtx *self, cairo_pattern_t *p);
-void CanvaCtx_recall_pattern(CanvaCtx *self, double n);
+int CanvaCtx_recall_pattern(CanvaCtx *self, double n);
 double CanvaCtx_new_linear_pattern(CanvaCtx *self, double x1, double y1, double x2, double y2);
 double CanvaCtx_new_radial_pattern(CanvaCtx *self, double x1, double y1, double r1, double x2, double y2, double r2);
 int CanvaCtx_add_stop_rgba(CanvaCtx *self, size_t p, double o, double r, double g, double b, double a, String *err_msg);
