@@ -19,13 +19,12 @@
 
 void _CanvaCtx_init(CanvaCtx *self)
 {
-	self->width = 640;
-	self->height = 480;
+	self->width = 768;
+	self->height = 1024;
 	self->pitch = 0;
 	self->default_auto_draw_mode = Stroke;
 	CanvaCtx_set_default_fill_color(self, 0, 0, 0, 255);
 	CanvaCtx_set_default_stroke_color(self, 0, 0, 0, 255);
-	self->default_line_with = 5.0;
 	self->pending_path = false;
 	self->color_set_up = false;
 
@@ -507,12 +506,6 @@ void CanvaCtx_restore(CanvaCtx *self)
 {
 	log_trace("Cairo restore %p\n", self->cr);
 	cairo_restore(self->cr);
-}
-
-
-void CanvaCtx_set_default_line_width(CanvaCtx *self, double w)
-{
-	self->default_line_with = w;
 }
 
 

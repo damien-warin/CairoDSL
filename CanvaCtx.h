@@ -73,7 +73,6 @@ typedef struct {
     cairo_pattern_t **patterns;
     size_t nb_patterns;
     cairo_t *cr;
-    double default_line_with;
     double default_stroke_color[4];
     double default_fill_color[4];
     double text_color[4];

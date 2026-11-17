@@ -166,7 +166,7 @@ int main( int argc, char *argv[ ] )
 
 
 
-			CanvaCtx_set_line_width (&Canva, 10.0);
+			CanvaCtx_set_line_width (&Canva, 1.0);
 			CanvaCtx_set_color(&Canva, 0, 0, 0, 255);
 
 			OpCanvaContext_set_Canva(&Ctx, &Canva);
@@ -193,7 +193,7 @@ int main( int argc, char *argv[ ] )
 		{
 			CanvaCtx_init_for_png(&Canva, width, height);
 
-			CanvaCtx_set_line_width (&Canva, 10.0);
+			CanvaCtx_set_line_width (&Canva, 1.0);
 			CanvaCtx_set_color(&Canva, 0, 0, 0, 255);
 
 			OpCanvaContext_set_Canva(&Ctx, &Canva);
@@ -226,7 +226,7 @@ int main( int argc, char *argv[ ] )
 		{
 			CanvaCtx_init_for_svg(&Canva, width, height);
 
-			CanvaCtx_set_line_width (&Canva, 10.0);
+			CanvaCtx_set_line_width (&Canva, 1.0);
 			CanvaCtx_set_color(&Canva, 0, 0, 0, 255);
 
 			OpCanvaContext_set_Canva(&Ctx, &Canva);

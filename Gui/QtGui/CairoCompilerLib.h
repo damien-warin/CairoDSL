@@ -61,7 +61,7 @@ int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *
 		{
 			CanvaCtx_init_for_png(&Canva, *width, *height);
 
-			CanvaCtx_set_line_width (&Canva, 10.0);
+			CanvaCtx_set_line_width (&Canva, 1.0);
 			CanvaCtx_set_color(&Canva, 0, 0, 0, 255);
 
 			OpCanvaContext_set_Canva(&Ctx, &Canva);
@@ -81,7 +81,7 @@ int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *
 		{
 			CanvaCtx_init_for_svg(&Canva, *width, *height);
 
-			CanvaCtx_set_line_width (&Canva, 10.0);
+			CanvaCtx_set_line_width (&Canva, 1.0);
 			CanvaCtx_set_color(&Canva, 0, 0, 0, 255);
 
 			OpCanvaContext_set_Canva(&Ctx, &Canva);

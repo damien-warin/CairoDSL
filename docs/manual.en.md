@@ -1170,12 +1170,12 @@ When the graphics context is initialized, CairoDSL uses the following default va
 
 | Parameter | Initial value |
 |---|---|
-| Surface width | 640 pixels |
-| Surface height | 480 pixels |
+| Surface width | 1024 pixels |
+| Surface height | 768 pixels |
 | Stroke color | Black `[0, 0, 0, 255]` |
 | Fill color | Black `[0, 0, 0, 255]` |
 | Initial rendering mode | `stroke` |
-| Line width | 5 pixels |
+| Line width | 1 pixels |
 
 The rendering engine depends on the interface being used:
 

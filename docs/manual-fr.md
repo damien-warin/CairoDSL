@@ -1493,12 +1493,12 @@ par défaut suivantes :
 |                        |                         |
 |------------------------|-------------------------|
 | Paramètre              | Valeur initiale         |
-| Largeur de la surface  | 640 pixels              |
-| Hauteur de la surface  | 480 pixels              |
+| Largeur de la surface  | 1024 pixels             |
+| Hauteur de la surface  | 768 pixels              |
 | Couleur du trait       | Noir *\[0, 0, 0, 255\]* |
 | Couleur de remplissage | Noir *\[0, 0, 0, 255\]* |
 | Mode de rendu initial  | *stroke*                |
-| Épaisseur du trait     | 5 pixels                |
+| Épaisseur du trait     | 1 pixels                |
 
 Le moteur de rendu dépend de l'interface utilisée :
 

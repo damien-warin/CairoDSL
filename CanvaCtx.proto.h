@@ -46,7 +46,6 @@ void CanvaCtx_new_sub_path(CanvaCtx *self);
 void CanvaCtx_close_path(CanvaCtx *self);
 void CanvaCtx_save(CanvaCtx *self);
 void CanvaCtx_restore(CanvaCtx *self);
-void CanvaCtx_set_default_line_width(CanvaCtx *self, double w);
 void CanvaCtx_set_default_draw_mode(CanvaCtx *self, CanvaCtxAutoDrawMode m);
 void CanvaCtx_auto_draw(CanvaCtx *self);
 void CanvaCtx_set_line_width(CanvaCtx *self, double w);
