@@ -83,7 +83,7 @@ int main( int argc, char *argv[ ] )
 	OpParser_init(&Parser);
 	OpProgram_set_context(&Prog, (OpContext*)&Ctx);
 	OpParser_set_program(&Parser, &Prog);
-	OpParser_set_current_context(&Parser, (OpContext*)&Ctx);
+	OpParser_push_current_context(&Parser, (OpContext*)&Ctx);
     /*extern int yydebug, yy_flex_debug;
     yydebug = 1;
     yy_flex_debug = 1;*/

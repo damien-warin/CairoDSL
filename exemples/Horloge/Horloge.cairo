@@ -20,13 +20,24 @@ aMH=aML/10;
 aSL=aML*0.5; //Aiguille des secondes
 aSH=aSL/10;
 
+function compute_rec(center, r, w, h)
+{
+			offset = offset << -r << -h/2 << w << h;
+			center = center << 0 << 0;
+ 		return center + offset;
+}
+
+
 for(i=[0:3])
 {
     rotate_around(center, i*pi()/2)
     {
-        rectangle(center[0]-rhorloge, center[1]-GrayonH/2, GrayonL, GrayonH);
-        rotate_around(center, pi()/6)rectangle(center[0]-rhorloge, center[1]-prayonH/2, prayonL, prayonH);
-        rotate_around(center, 2*pi()/6)rectangle(center[0]-rhorloge, center[1]-prayonH/2, prayonL, prayonH);
+        rectangle(compute_rec(center, rhorloge, GrayonL, GrayonH));
+        rotate_around(center, pi()/6)rectangle(compute_rec( center, rhorloge, prayonL, prayonH));
+        rotate_around(center, 2*pi()/6)rectangle(compute_rec( center, rhorloge, prayonL, prayonH));
+//        rectangle(center[0]-rhorloge, center[1]-GrayonH/2, GrayonL, GrayonH);
+//        rotate_around(center, pi()/6)rectangle(center[0]-rhorloge, center[1]-prayonH/2, prayonL, prayonH);
+//        rotate_around(center, 2*pi()/6)rectangle(center[0]-rhorloge, center[1]-prayonH/2, prayonL, prayonH);
     }
 }
 fill();
@@ -35,7 +46,10 @@ Now=getlocaltime(gettimeinsecs());
 NowH=Now[2];
 NowM=Now[1];
 NowS=Now[0];
-color(black())rotate_around(center, pi()/2+pi()/6*NowH)rectangle(center[0]-aHL, center[1]-aHH/2, aHL, aHH);
-color(blue())rotate_around(center, pi()/2+2*pi()/60*NowM)rectangle(center[0]-aML, center[1]-aMH/2, aML, aMH);
-color(red())rotate_around(center, pi()/2+2*pi()/60*NowS)rectangle(center[0]-aSL, center[1]-aSH/2, aSL, aSH);
+color(black())rotate_around(center, pi()/2+pi()/6*NowH)rectangle(compute_rec(center, aHL, aHL, aHH));
+color(blue())rotate_around(center, pi()/2+2*pi()/60*NowM)rectangle(compute_rec(center, aML, aML, aMH));
+color(red())rotate_around(center, pi()/2+2*pi()/60*NowS)rectangle(compute_rec(center, aSL, aSL, aSH));
+//color(black())rotate_around(center, pi()/2+pi()/6*NowH)rectangle(center[0]-aHL, center[1]-aHH/2, aHL, aHH);
+//color(blue())rotate_around(center, pi()/2+2*pi()/60*NowM)rectangle(center[0]-aML, center[1]-aMH/2, aML, aMH);
+//color(red())rotate_around(center, pi()/2+2*pi()/60*NowS)rectangle(center[0]-aSL, center[1]-aSH/2, aSL, aSH);
 

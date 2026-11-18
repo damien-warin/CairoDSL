@@ -476,6 +476,7 @@ void OpContext_set_running_state(OpContext *self, Op *sender, OpRunningState sta
 	case Message :
 	case Break :
 	case Continue :
+	case Return :
 	case Finished : log_trace("%s", String_get_char_string(&log));
 					break;
 	case Error :
@@ -1084,6 +1085,10 @@ int Op_execute(Op *self, OpContext *ctx)
 		else if(state == Break || state == Continue)
 		{
 			log_trace("Op %p Not executed because Ctx state %d, Lauching Break or Continue\n", self, state);
+		}
+		else if(state == Return)
+		{
+			log_trace("Op %p Not executed because Ctx state %d, Lauching Return\n", self, state);
 		}
 		else
 			log_trace("Op %p Not executed because Ctx state %d\n", self, state);

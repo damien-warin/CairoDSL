@@ -50,6 +50,7 @@ typedef enum op_running_state
 	Message,
 	Break,
 	Continue,
+	Return,
 	Finished,
 	Error,
 	ParseError

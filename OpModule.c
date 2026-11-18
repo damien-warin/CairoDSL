@@ -338,3 +338,84 @@ Op *OpLaunchModuleChilds_new(void)
 {
 	return Op_new(&OpLaunchModuleChilds_isa);
 }
+
+OpIsa OpReturn_isa = {
+		.name="Return",
+		.size=sizeof(OpReturn),
+		.init = (void(*)(Op*))OpReturn_init,
+		.terminate = (void(*)(Op*))OpReturn_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))OpReturn_fix_operandes,
+		.execute = (int(*)(Op*, OpContext*))OpReturn_execute,
+		.check_args = (int(*)(Op*, OpContext*))OpReturn_check_args,
+};
+
+void OpReturn_init(OpReturn *self)
+{
+	Op_init(&self->super);
+	self->ret = NULL;
+	self->parent = NULL;
+}
+
+void _OpReturn_set_ret(OpReturn *self, Op *r)
+{
+	OP_SET_OPERANDE(self, ret, r);
+}
+
+#define OPRETURN_RET 0
+
+void OpReturn_set_ret(OpReturn *self, Op *r)
+{
+	OP_ADD_OPERANDE(self, r, OPRETURN_RET);
+}
+
+int OpReturn_fix_operandes(OpReturn *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->super.nb_ops >= 1)
+	{
+		ret = 0;
+		_OpReturn_set_ret(self, self->super.operandes[OPRETURN_RET]);
+	}
+	return ret;
+}
+
+int OpReturn_check_args(OpReturn *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->ret != NULL && self->parent != NULL)
+		ret = 0;
+	return ret;
+}
+
+void OpReturn_set_parent(OpReturn *self, OpContext *p)
+{
+	self->parent = p;
+}
+
+int OpReturn_execute(OpReturn *self, OpContext *ctx)
+{
+	int ret = 0;
+
+	ret = Op_execute(self->ret, ctx);
+	if(ret == 0)
+	{
+		OpVariable *v = OpContext_get_current_value(ctx);
+		OpContext_copy_variable_to_current_value(self->parent, v);
+		OpContext_set_running_state(ctx, (Op*)self, Return, "Throw Return to end the function");
+	}
+	else
+		OpContext_set_running_state(ctx, (Op*)self, Error, "Error during execution of RETURN");
+
+	return ret;
+}
+
+void OpReturn_terminate(OpReturn *self)
+{
+	Op_terminate(&self->super);
+	_OpReturn_set_ret(self, NULL);
+}
+
+Op *OpReturn_new(void)
+{
+	return Op_new(&OpReturn_isa);
+}

@@ -32,6 +32,8 @@ void OpProgram_init(OpProgram *self)
 {
 	self->modules = NULL;
 	self->number_of_modules = 0;
+	self->functions = NULL;
+	self->number_of_functions = 0;
 	self->imports = NULL;
 	self->number_of_imports = 0;
 	self->root = NULL;
@@ -54,6 +56,20 @@ void OpProgram_terminate(OpProgram *self)
 			}
 			free(self->modules);
 			self->modules = NULL;
+		}
+	}
+	if(self->number_of_functions > 0)
+	{
+		if(self->functions != NULL)
+		{
+			int i;
+			for(i = 0; i < self->number_of_functions; i++)
+			{
+				if(self->functions[i] != NULL)
+					OpModule_free(self->functions[i]);
+			}
+			free(self->functions);
+			self->functions = NULL;
 		}
 	}
 	if(self->number_of_imports > 0)
@@ -98,6 +114,15 @@ int OpProgram_fix_operandes(OpProgram *self)
 					break;
 			}
 		}
+		for(i = 0; i < self->number_of_functions; i++)
+		{
+			OpModule *m = self->functions[i];
+			if(m != NULL)
+			{
+				if((ret = OpModule_fix_operandes(m)) != 0)
+					break;
+			}
+		}
 		for(i = 0; i < self->number_of_imports; i++)
 		{
 			OpImport *p = self->imports[i];
@@ -117,6 +142,12 @@ void OpProgram_set_Canva(OpProgram *self, CanvaCtx *c)
 	for(i = 0; i < self->number_of_modules; i++)
 	{
 		OpModule *m = self->modules[i];
+		if(m != NULL)
+			OpModule_set_Canva(m, c);
+	}
+	for(i = 0; i < self->number_of_functions; i++)
+	{
+		OpModule *m = self->functions[i];
 		if(m != NULL)
 			OpModule_set_Canva(m, c);
 	}
@@ -175,6 +206,49 @@ OpModule *OpProgram_get_module(OpProgram *self, size_t num)
 	return ret;
 }
 
+ssize_t OpProgram_check_function_number(OpProgram *self, const char *name)
+{
+	if(self->number_of_functions > 0)
+	{
+		size_t i;
+		int found = 0;
+		for(i = 0; i < self->number_of_functions; i++)
+		{
+			OpModule *m = self->functions[i];
+			if(String_compare_with_char_string(OpModule_get_name(m), name) == 0)
+			{
+				found = 1;
+				return (ssize_t)i;
+			}
+		}
+	}
+	return -1;
+}
+
+size_t OpProgram_get_function_number(OpProgram *self, const char *name)
+{
+	ssize_t num = OpProgram_check_function_number(self, name);
+	if(num >= 0)
+		return (size_t)num;
+	size_t place;
+	place = self->number_of_functions;
+	self->number_of_functions++;
+	self->functions = realloc(self->functions, self->number_of_functions * sizeof(OpModule*));
+	OpModule *m = OpModule_new();
+	OpModule_set_name(m, name);
+	OpModule_duplicate_context(m, (OpCanvaContext*)self->ctx);
+	self->functions[place] = m;
+	return place;
+}
+
+OpModule *OpProgram_get_function(OpProgram *self, size_t num)
+{
+	OpModule *ret = NULL;
+	if(num < self->number_of_functions)
+		ret = self->functions[num];
+	return ret;
+}
+
 size_t OpProgram_add_import(OpProgram *self, OpImport *import)
 {
 	self->number_of_imports++;
@@ -205,6 +279,13 @@ void OpProgram_export_to_xml(OpProgram *self, String *xml, bool with_output)
 	for(i = 0; i < self->number_of_modules; i++)
 	{
 		OpModule *m = self->modules[i];
+		if(m == NULL)
+			continue;
+		OpModule_export_messages_to_xml(m, xml);
+	}
+	for(i = 0; i < self->number_of_functions; i++)
+	{
+		OpModule *m = self->functions[i];
 		if(m == NULL)
 			continue;
 		OpModule_export_messages_to_xml(m, xml);
@@ -242,9 +323,13 @@ void OpParser_init(OpParser *self)
 	String_init(&self->filename_prefix);
 	LinkedList_init(&self->filenames);
 	self->inside_module = 0;
+	self->inside_function = 0;
 	self->inside_loop = 0;
-	self->current_c = NULL;
+	self->contexts = NULL;
+	self->nb_contexts = 0;
+	self->cur_context_nb = 0;
 	self->current_m = NULL;
+	self->current_f = NULL;
 	self->current_pattern = -1;
 	self->auto_gen_vars = 0;
 	self->temp = NULL;
@@ -385,9 +470,9 @@ int OpParser_pop_stream(OpParser *self)
 		yy_switch_to_buffer(self->files[self->depth - 1]->state);
 	if(f != NULL)
 	{
-		OpParserFile_free(f);
 		yycolumn = f->column;
 		yylineno = f->line;
+		OpParserFile_free(f);
 	}
 	log_trace("Parser pop : depth = %d\n", self->depth);
 	return self->depth;
@@ -407,6 +492,8 @@ void OpParser_terminate(OpParser *self)
 	LinkedList_finalize(&self->filenames);
 	if(self->temp != NULL)
 		Op_free(self->temp);
+	if(self->contexts != NULL)
+		free(self->contexts);
 }
 
 void OpParser_free(OpParser *self)
@@ -420,17 +507,48 @@ void OpParser_free(OpParser *self)
 
 OpContext *OpParser_get_current_context(OpParser *self)
 {
-	return self->current_c;
+	if(self->contexts != NULL)
+		return self->contexts[self->cur_context_nb - 1];
+	else
+		return NULL;
 }
 
-void OpParser_set_current_context(OpParser *self, OpContext *ctx)
+OpContext *OpParser_get_parent_context(OpParser *self)
 {
-	self->current_c = ctx;
+	if(self->contexts != NULL && self->cur_context_nb >= 2)
+		return self->contexts[self->cur_context_nb - 2];
+	else
+		return NULL;
+}
+
+void OpParser_push_current_context(OpParser *self, OpContext *ctx)
+{
+	if(self->cur_context_nb >= self->nb_contexts)
+		self->contexts = realloc(self->contexts, sizeof(OpContext*) * ++self->nb_contexts);
+	self->contexts[++self->cur_context_nb - 1] = ctx;
+}
+
+void OpParser_pop_current_context(OpParser *self)
+{
+	if(self->contexts != NULL && self->cur_context_nb >= 1)
+	{
+		self->contexts[self->cur_context_nb-- - 1] = NULL;
+	}
 }
 
 OpModule *OpParser_get_current_module(OpParser *self)
 {
 	return self->current_m;
+}
+
+void OpParser_set_current_function(OpParser *self, OpModule *m)
+{
+	self->current_f = m;
+}
+
+OpModule *OpParser_get_current_function(OpParser *self)
+{
+	return self->current_f;
 }
 
 void OpParser_set_current_module(OpParser *self, OpModule *m)
@@ -461,6 +579,21 @@ void OpParser_set_inside_module(OpParser *self)
 void OpParser_unset_inside_module(OpParser *self)
 {
 	self->inside_module--;
+}
+
+int OpParser_get_inside_function(OpParser *self)
+{
+	return self->inside_function;
+}
+
+void OpParser_set_inside_function(OpParser *self)
+{
+	self->inside_function++;
+}
+
+void OpParser_unset_inside_function(OpParser *self)
+{
+	self->inside_function--;
 }
 
 int OpParser_get_inside_loop(OpParser *self)
@@ -2127,6 +2260,8 @@ void OpParserFile_init(OpParserFile *self)
 {
 	self->state = NULL;
 	self->file_content = NULL;
+	self->column = -1;
+	self->line = -1;
 }
 
 OpParserFile *OpParserFile_new(void)

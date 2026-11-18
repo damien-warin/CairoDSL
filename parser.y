@@ -161,7 +161,9 @@ Op *root;
 %token SETPNGOUTPUT
 %token SETSVGOUTPUT
 %token DEFMODULE
+%token DEFFUNC
 %token CHILDS
+%token RETURN
 %token INCLUDE
 %token IMPORT
 %token DRAWIMPORT
@@ -169,7 +171,7 @@ Op *root;
 
 
 %type <program> program
-%type <node> block expression statements statement NewPatternFirstBlock
+%type <node> block funcblock expression statements statement NewPatternFirstBlock
 %type <list> call_args def_args
 %type <var> number_list string_list
 %destructor { free($$); } <string>
@@ -257,6 +259,21 @@ block:
 		}
 ;
 
+funcblock:
+		'{' statements RETURN expression ';' '}'
+		{
+			OpBloc *op = (OpBloc*)OpBloc_new();
+          $$ = (Op*)op;	
+          OpBloc_append_Op(op, $2);	
+          
+  			Op *r = OpReturn_new();
+			OpReturn_set_ret((OpReturn*)r, $4);
+			OpReturn_set_parent((OpReturn*)r, OpParser_get_parent_context(p));
+			OpBloc_append_Op(op, r);
+      		Op_set_source_pos(r, @3.first_line, @3.first_column, @5.last_line, @5.last_column);
+		}
+;
+
 statements:
 		%empty
 		{
@@ -285,6 +302,31 @@ statement:
       
       | IDENTIFIER '(' call_args ')' ';'
       {
+      		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		
       		ssize_t module_num = OpProgram_check_module_number(OpParser_get_program(p), $1);
       		if(module_num >= 0)
       		{
@@ -329,6 +371,28 @@ statement:
       
       | IDENTIFIER '(' ')' ';'
       {
+    		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
       		ssize_t module_num = OpProgram_check_module_number(OpParser_get_program(p), $1);
       		if(module_num >= 0)
       		{
@@ -384,6 +448,30 @@ statement:
       
       | IDENTIFIER '(' call_args ')' block
       {
+    		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
       		ssize_t module_num = OpProgram_check_module_number(OpParser_get_program(p), $1);
       		if(module_num >= 0)
       		{
@@ -430,6 +518,28 @@ statement:
       
       | IDENTIFIER '(' ')' block
       {
+    		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Module called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
       		ssize_t module_num = OpProgram_check_module_number(OpParser_get_program(p), $1);
       		if(module_num >= 0)
       		{
@@ -507,7 +617,7 @@ statement:
       		OpModule *m = OpProgram_get_module(OpParser_get_program(p), module_num);
       		OpParser_set_current_module(p, m);
       		OpParser_set_inside_module(p);
-      		OpParser_set_current_context(p, (OpContext*)OpModule_get_context(m));
+      		OpParser_push_current_context(p, (OpContext*)OpModule_get_context(m));
       		OpModule_add_arguments(m, $4);
       		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
       		LinkedList_free($4);
@@ -516,7 +626,7 @@ statement:
       {
       		OpModule *m = OpParser_get_current_module(p);
       		OpModule_add_to_root(m, $7);
-      		OpParser_set_current_context(p, OpProgram_get_context(OpParser_get_program(p)));
+      		OpParser_pop_current_context(p);
       		OpParser_set_current_module(p, NULL);
       		OpParser_unset_inside_module(p);
       		$$ = (Op*)NULL;
@@ -553,15 +663,110 @@ statement:
       		OpModule *m = OpProgram_get_module(OpParser_get_program(p), module_num);
       		OpParser_set_current_module(p, m);
       		OpParser_set_inside_module(p);
-      		OpParser_set_current_context(p, (OpContext*)OpModule_get_context(m));
+      		OpParser_push_current_context(p, (OpContext*)OpModule_get_context(m));
       }
       block
       {
       		OpModule *m = OpParser_get_current_module(p);
       		OpModule_add_to_root(m, $6);
-      		OpParser_set_current_context(p, OpProgram_get_context(OpParser_get_program(p)));
+      		OpParser_pop_current_context(p);
       		OpParser_set_current_module(p, NULL);
       		OpParser_unset_inside_module(p);
+      		$$ = (Op*)NULL;
+      }
+      
+      | DEFFUNC IDENTIFIER '(' def_args ')'
+      {
+		  	if(OpParser_get_inside_module(p) > 0)
+			{
+	      		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
+	      		LinkedList_free($4);
+	      		$4 = (LinkedList*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Definition of functino '%s' inside another function", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
+		        YYERROR;
+			}
+      		ssize_t module_num_check = OpProgram_check_function_number(OpParser_get_program(p), $2);
+		  	if(module_num_check >= 0)
+			{
+	      		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
+	      		LinkedList_free($4);
+	      		$4 = (LinkedList*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function '%s' already exist", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
+		        YYERROR;
+			}
+      		size_t module_num = OpProgram_get_function_number(OpParser_get_program(p), $2);
+      		free($2);
+      		$2 = (char*)NULL;
+      		OpModule *m = OpProgram_get_function(OpParser_get_program(p), module_num);
+      		OpParser_set_current_function(p, m);
+      		OpParser_set_inside_function(p);
+      		OpParser_push_current_context(p, (OpContext*)OpModule_get_context(m));
+      		OpModule_add_arguments(m, $4);
+      		LinkedList_do_to_all($4, (void(*)(void*, void*))free, NULL);
+      		LinkedList_free($4);
+      }
+      funcblock
+      {
+      		OpModule *m = OpParser_get_current_function(p);
+      		OpModule_add_to_root(m, $7);
+      		OpParser_pop_current_context(p);
+      		OpParser_set_current_function(p, NULL);
+      		OpParser_unset_inside_function(p);
+      		$$ = (Op*)NULL;
+      }
+      
+      | DEFFUNC IDENTIFIER '(' ')'
+      {
+		  	if(OpParser_get_inside_module(p) > 0)
+			{
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Definition of function '%s' inside another function", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
+		        YYERROR;
+			}
+      		ssize_t module_num_check = OpProgram_check_function_number(OpParser_get_program(p), $2);
+		  	if(module_num_check >= 0)
+			{
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function '%s' already exist", $2);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+	      		free($2);
+	      		$2 = (char*)NULL;
+		        YYERROR;
+			}
+      		size_t module_num = OpProgram_get_function_number(OpParser_get_program(p), $2);
+      		free($2);
+      		$2 = (char*)NULL;
+      		OpModule *m = OpProgram_get_module(OpParser_get_program(p), module_num);
+      		OpParser_set_current_function(p, m);
+      		OpParser_set_inside_function(p);
+      		OpParser_push_current_context(p, (OpContext*)OpModule_get_context(m));
+      }
+      funcblock
+      {
+      		OpModule *m = OpParser_get_current_function(p);
+      		OpModule_add_to_root(m, $6);
+      		OpParser_pop_current_context(p);
+      		OpParser_set_current_function(p, NULL);
+      		OpParser_unset_inside_function(p);
       		$$ = (Op*)NULL;
       }
       | INCLUDE TEXTCONTENT ';'
@@ -569,6 +774,12 @@ statement:
 			OpParser_parse_include(p, $2);
 			free($2);
 			$$ = NULL;
+      }
+      | RETURN expression ';'
+      {
+			$$ = OpReturn_new();
+			OpReturn_set_ret((OpReturn*)$$, $2);
+			OpReturn_set_parent((OpReturn*)$$, OpParser_get_parent_context(p));
       }
       | IMPORT '(' expression ')' ';'
       {
@@ -1742,6 +1953,138 @@ expression:
       NewPatternFirstBlock
       {
         $$ = $6;
+      }
+      
+      
+      | IDENTIFIER '(' call_args ')'
+      {
+    		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		ssize_t module_num = OpProgram_check_function_number(OpParser_get_program(p), $1);
+      		if(module_num >= 0)
+      		{
+	      		OpLaunchModule *op = (OpLaunchModule*)OpLaunchModule_new();
+	      		$$ = (Op*)op;
+	      		OpModule *m = OpProgram_get_function(OpParser_get_program(p), module_num);
+	      		OpLaunchModule_set_module(op, m);
+	      		if(OpLaunchModule_set_call_arguments(op, $3) == 0)
+	      		{
+	      			LinkedList_free($3);
+      				free($1);
+  				}
+	      		else
+	      		{
+	      			Op_free((Op*)op);
+	      			$$ = (Op*)NULL;
+		      		LinkedList_free($3);
+	      			String s;
+      				String_init(&s);
+	      			String_append_printf(&s, "Function '%s' called with wrong nomber of arguments", $1);
+      				yyerror(root, p, String_get_char_string(&s));
+      				String_finalize(&s);
+		      		free($1);
+		      		YYERROR;
+	      		}
+      		}
+      		else
+      		{
+      			$$ = (Op*)NULL;
+      			LinkedList_free($3);
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function '%s' not found", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+  			}
+  			log_trace("CALL FUNCTION WITHOUT BLOCK\n");
+      		
+      }
+      
+      | IDENTIFIER '(' ')'
+      {
+      		if(OpParser_get_inside_module(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function called inside another module", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		else if(OpParser_get_inside_function(p) > 0)
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function called inside another function", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+      		}
+      		ssize_t module_num = OpProgram_check_function_number(OpParser_get_program(p), $1);
+      		if(module_num >= 0)
+      		{
+	      		OpLaunchModule *op = (OpLaunchModule*)OpLaunchModule_new();
+	      		$$ = (Op*)op;
+	      		OpModule *m = OpProgram_get_function(OpParser_get_program(p), module_num);
+	      		OpLaunchModule_set_module(op, m);
+	      		if(OpLaunchModule_set_call_arguments(op, NULL) == 0)
+	      		{
+      				free($1);
+  				}
+	      		else
+	      		{
+	      			Op_free((Op*)op);
+	      			$$ = (Op*)NULL;
+	      			String s;
+      				String_init(&s);
+	      			String_append_printf(&s, "Function '%s' called with wrong nomber of arguments", $1);
+      				yyerror(root, p, String_get_char_string(&s));
+      				String_finalize(&s);
+		      		free($1);
+		      		YYERROR;
+	      		}
+      		}
+      		else
+      		{
+      			$$ = (Op*)NULL;
+      			String s;
+      			String_init(&s);
+      			String_append_printf(&s, "Function '%s' not found", $1);
+      			yyerror(root, p, String_get_char_string(&s));
+      			String_finalize(&s);
+      			free($1);
+      			YYERROR;
+  			}
+  			log_trace("CALL FUNCTION WITHOUT BLOCK\n");
+      		
       }
       
       

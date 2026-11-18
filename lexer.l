@@ -146,6 +146,7 @@ int yycolumn = 1;
 (?i:"rand")			{ return RAND; }
 (?i:"message")		{ return MESSAGE; } 
 (?i:"children")		{ return CHILDS; }
+(?i:"return")		{ return RETURN; }
 (?i:"import")		{ return IMPORT; } 
 (?i:"drawimport")		{ return DRAWIMPORT; }  
 (?i:"getimportextents")		{ return GETIMPORTEXTENTS; } 
@@ -154,7 +155,8 @@ int yycolumn = 1;
 ^(?i:"#setpngoutput")	{ return SETPNGOUTPUT; }
 ^(?i:"#setsvgoutput")	{ return SETSVGOUTPUT; } 
 ^(?i:"#include")	{ return INCLUDE; } 
-(?i:"module")		{ return DEFMODULE; }  
+(?i:"module")		{ return DEFMODULE; } 
+(?i:"function")		{ return DEFFUNC; }  
 
 [0-9]+(\.[0-9]+)? {
     yylval.number = atof(yytext);

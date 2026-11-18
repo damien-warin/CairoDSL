@@ -28,6 +28,8 @@ typedef struct op_program
 	Op *root;//Main program
 	OpModule **modules;
 	size_t number_of_modules;
+	OpModule **functions;
+	size_t number_of_functions;
 	OpImport **imports;
 	size_t number_of_imports;
 }OpProgram;
@@ -44,10 +46,14 @@ typedef struct op_parser_file
 
 typedef struct op_parser
 {
-	OpContext *current_c;
+	OpContext **contexts;
+	size_t nb_contexts;
+	size_t cur_context_nb;
 	OpModule *current_m;
+	OpModule *current_f;
 	ssize_t current_pattern;
 	int inside_module;
+	int inside_function;
 	OpProgram *program;
 	OpParserFile **files;
 	LinkedList filenames;

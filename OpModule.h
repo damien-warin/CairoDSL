@@ -43,6 +43,13 @@ typedef struct op_launch_module_childs
 	OpModule *module;
 } OpLaunchModuleChilds;
 
+typedef struct op_return
+{
+	Op super;//Must be First
+	Op *ret;
+	OpContext *parent;
+} OpReturn;
+
 
 #include <OpModule.proto.h>
 
