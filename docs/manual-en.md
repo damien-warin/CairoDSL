@@ -52,13 +52,15 @@ without an explicit rendering instruction.
 
 This mechanism is triggered only when a path is still available when the block exits.
 
-The `translate`, `rotate`, `scale`, `skewX/Y`, `applymatrix`, `setlinewidth`, `setdash`, `setfont` and `setfontsize` instructions, as well as module calls, also use CanvaBloc blocks, but without auto-draw.
+The `translate`, `rotate`, `scale`, `skewX/Y`, `applymatrix`, `setlinewidth`, `setdash`, `setfont` and `setfontsize` instructions, as well as module and functions calls, also use CanvaBloc blocks, but without auto-draw.
 
 When a CanvaBloc triggers auto-draw, it is performed immediately before the graphics context is restored (`restore()`). Automatic rendering operations therefore do not affect the graphics state retained after the block has closed.
 
-### 1.4 Declaring and calling modules
+### 1.4 Declaring and calling modules and functions
 
-Modules make it possible to organize code into reusable components.
+Modules and functions make it possible to organize code into reusable components. Their operation is similar, but they serve different purposes: modules can handle child blocks, while functions calculate and return a value.
+
+**Declaring and calling a module**
 
 ```cairo
 module NomDuModule(arg1, arg2) {
@@ -77,11 +79,32 @@ NomDuModule(val1, val2) {
 
 The `children()` function is used inside a module to execute the block of instructions supplied when the module is called.
 
-A module must declare at least one parameter, even if that parameter is not used in its body.
+**Declaring and calling a function**
 
-A module's local variables are reset on each execution.
+```cairo
+function NomDeLaFonction(arg1, arg2) {
+    // Function instructions
+    return arg1 + arg2;
+}
 
-The position of `children()` in the module body determines when the child block is executed.
+// Call within an expression or assignment
+result = NomDeLaFonction(val1, val2);
+```
+
+Functions return a value to the calling process using the `return` statement. It takes an expression, whose result is the value returned.
+
+A `return` statement may appear at several points in the function body. When encountered, execution of the function stops immediately and the value is returned to the caller. A `return` statement must also be present as the final instruction in the function body.
+
+Unlike modules, functions cannot receive a child block and therefore do not provide the `children()` mechanism.
+
+**General rules**
+
+- A module must declare at least one parameter, even if that parameter is not used in its body.
+- A function must also declare at least one parameter, even if that parameter is not used in its body.
+- Local variables in a module or function are reset on each execution.
+- Function calls must be part of an expression or assigned to a variable so that their return value can be used.
+- The position of `children()` in the module body determines when the child block is executed.
+- Module and function declarations cannot currently be nested. However, calls to modules and functions can be used in child blocks passed to a module.
 
 ## Chapter 2: Paths and Geometry
 

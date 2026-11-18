@@ -81,7 +81,7 @@ la sortie du bloc.
 
 Les instructions *translate*, *rotate*, *scale*, *skewX/Y*,
 *applymatrix*, *setlinewidth*, *setdash*, *setfont* et *setfontsize*,
-ainsi que les appels de modules, utilisent également des CanvaBloc, mais
+ainsi que les appels de modules et de functions, utilisent également des CanvaBloc, mais
 sans auto-draw.
 
 Lorsqu'un CanvaBloc déclenche un auto-draw, celui-ci est exécuté juste
@@ -89,42 +89,55 @@ avant la restauration du contexte graphique (*restore()*). Les
 opérations de rendu automatique n'affectent donc pas l'état graphique
 conservé après la fermeture du bloc.
 
-### 1.4 Déclaration et appel de modules
+### 1.4 Déclaration et appel de modules et de functions
 
-Les modules permettent de structurer le code en composants
-réutilisables.
+Les modules et les functions permettent de structurer le code en composants réutilisables. Leur fonctionnement est similaire, mais ils répondent à des usages différents : les modules permettent notamment de gérer des blocs enfants, tandis que les functions permettent de calculer et de retourner une valeur.
 
-*module NomDuModule(arg1, arg2) {*
+#### Déclaration et appel d'un module
 
-* // Instructions du module*
+```cairo
+module NomDuModule(arg1, arg2) {
+    // Instructions du module
+    children();
+}
 
-* children();*
+// Appel sans bloc enfant
+NomDuModule(val1, val2);
 
-*}*
+// Appel avec bloc enfant
+NomDuModule(val1, val2) {
+    // Instructions transmises à children()
+}
+```
 
-*// Appel sans bloc enfant*
+La fonction `children()` s'utilise à l'intérieur d'un module pour exécuter le bloc d'instructions fourni lors de son appel.
 
-*NomDuModule(val1, val2);*
+#### Déclaration et appel d'une function
 
-*// Appel avec bloc enfant*
+```cairo
+function NomDeLaFonction(arg1, arg2) {
+    // Instructions de la fonction
+    return arg1 + arg2;
+}
 
-*NomDuModule(val1, val2) {*
+// Appel dans une expression ou affectation
+resultat = NomDeLaFonction(val1, val2);
+```
 
-* // Instructions transmises à children()*
+Les functions permettent de retourner une valeur au processus appelant à l'aide de l'instruction `return`. Celle-ci prend une expression dont le résultat constitue la valeur retournée.
 
-*}*
+Une instruction `return` peut apparaître à plusieurs endroits dans le corps de la function. Lorsqu'elle est rencontrée, l'exécution de la function s'interrompt immédiatement et la valeur est renvoyée à l'appelant. Une instruction `return` doit obligatoirement être présente en dernière instruction du corps de la function.
 
-La fonction *children()* s'utilise à l'intérieur d'un module pour
-exécuter le bloc d'instructions fourni lors de son appel.
+Contrairement aux modules, les functions ne peuvent pas recevoir de bloc enfant et ne disposent donc pas du mécanisme `children()`.
 
-Un module doit obligatoirement déclarer au moins un paramètre, même si
-celui-ci n'est pas utilisé dans son corps.
+#### Règles générales
 
-Les variables locales d'un module sont réinitialisées à chaque
-exécution.
-
-L'emplacement de *children()* dans le corps du module détermine le
-moment où le bloc enfant est exécuté.
+- Un module doit obligatoirement déclarer au moins un paramètre, même si celui-ci n'est pas utilisé dans son corps.
+- Une function doit également déclarer au moins un paramètre, même si celui-ci n'est pas utilisé dans son corps.
+- Les variables locales d'un module ou d'une function sont réinitialisées à chaque exécution.
+- Les appels de functions doivent obligatoirement être intégrés à une expression ou affectés à une variable afin d'exploiter leur valeur de retour.
+- L'emplacement de `children()` dans le corps du module détermine le moment où le bloc enfant est exécuté.
+- Il n'est actuellement pas possible d'imbriquer des déclarations de modules et de functions. En revanche, les appels de modules et de functions peuvent être utilisés dans les blocs enfants transmis à un module.
 
 ## Chapitre 2 : Chemins et géométrie
 
