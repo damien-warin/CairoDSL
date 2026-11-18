@@ -28,6 +28,8 @@ const char *_Op_get_running_state_string(OpRunningState state)
 						break;
 	case Run :			return "Run";
 						break;
+	case Message :		return "Message";
+						break;
 	case Finished :		return "Finished";
 						break;
 	case Error :		return "Error";
@@ -353,6 +355,7 @@ void OpMessage_set_params(OpMessage *self, SourcePos *pos, OpRunningState state,
 
 void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 {
+#ifndef QTGUI
 	String_append_printf(s, "<msg><pos><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%s</running-state><text>%s</text></msg>",
 								self->pos.first_line,
 								self->pos.first_column,
@@ -360,6 +363,15 @@ void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 								self->pos.last_column,
 								_Op_get_running_state_string(self->state),
 								String_get_char_string(&self->msg));
+#else
+	String_append_printf(s, "<msg><pos><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%d</running-state><text>%s</text></msg>",
+								self->pos.first_line,
+								self->pos.first_column,
+								self->pos.last_line,
+								self->pos.last_column,
+								self->state,
+								String_get_char_string(&self->msg));
+#endif
 }
 
 void OpMessage_free(OpMessage *self)
@@ -432,13 +444,13 @@ void OpContext_export_messages_to_xml(OpContext *self, String *xml)
 
 void OpContext_report_message(OpContext *self, Op *sender, const char *message)
 {
-	OpContext_set_running_state(self, sender, self->state, message);
+	OpContext_set_running_state(self, sender, Message, message);
 }
 
 void OpContext_set_running_state(OpContext *self, Op *sender, OpRunningState state, const char *message)
 {
 	String params, log;
-	self->state = state;
+	self->state = state != Message ? state : self->state;
 	String_init(&params);
 	String_append_char_string(&params, message);
 	String_init(&log);
@@ -461,6 +473,7 @@ void OpContext_set_running_state(OpContext *self, Op *sender, OpRunningState sta
 	case PreRun :
 	case Ready :
 	case Run :
+	case Message :
 	case Break :
 	case Continue :
 	case Finished : log_trace("%s", String_get_char_string(&log));

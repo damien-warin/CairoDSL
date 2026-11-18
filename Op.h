@@ -47,6 +47,7 @@ typedef enum op_running_state
 	PreRun,
 	Ready,
 	Run,
+	Message,
 	Break,
 	Continue,
 	Finished,
