@@ -28,6 +28,7 @@ private:
     QTextCharFormat numberFormat;
 
     QVector<HighlightingRule> staticRules;   // Règles fixes (lexer, nombres, etc.)
+    QVector<HighlightingRule> staticPriorityRules;   // Rules fixed by comments
     QVector<HighlightingRule> dynamicRules;  // Règles dynamiques (variables, modules)
     QSet<QString> lastKnownModules;
     QSet<QString> lastKnownVariables;

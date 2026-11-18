@@ -13,10 +13,14 @@
 #include <QTableWidget>
 #include <QStringList>
 #include <QStringListModel>
+#include <QToolButton>
+#include <QAction>
 #include "CairoDslHighlighter.h"
+#include "CairoCompilerLib.h"
+#include <Op.h>
 
 struct MessageItem {
-    QString state;
+	OpRunningState state;
     QString text;
     int firstLine = -1;
     int firstColumn = -1;
@@ -42,6 +46,7 @@ private slots:
     void saveOutput();
     void onMessageClicked(QListWidgetItem *item);
     void onTextChanged();
+    void applyFilters();
 
     // Profils d'environnement
     void onEnvironmentProfileChanged(int index);
@@ -68,7 +73,7 @@ private:
     void clearOutput();
     void clearMessages();
     void addMessage(const MessageItem &msg);
-    void addLocalMessage(const QString &state, const QString &text);
+    void addLocalMessage(OpRunningState state, const QString &text);
     void selectEditorPosition(int firstLine,
                               int firstColumn,
                               int lastLine,
@@ -83,6 +88,10 @@ private:
     void applyEnvironmentProfile();
 
     void loadEnvironmentProfile();
+
+    //Gestion des filtres de messages
+    void saveFilterSettings();
+    void loadFilterSettings();
 
     // Completer
     void setupCompleter();
@@ -107,6 +116,10 @@ private:
     QPushButton *saveOutputBtn;
 
     QListWidget *messagesList;
+    QToolButton *filterButton;
+    QAction *actErrors;
+    QAction *actMessages;
+    QAction *actStates;
 
     // Interface des variables d'environnement
     QComboBox *environmentProfileCombo;

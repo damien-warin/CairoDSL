@@ -26,6 +26,8 @@
 #include <QHeaderView>
 #include <QAbstractItemView>
 
+#include <QMenu>
+
 #include <QSettings>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -132,8 +134,10 @@ void MainWindow::refreshDynamicSymbolsConnect() {
 void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
     // Expressions régulières pour extraire les symboles du texte en cours d'édition
     QRegularExpression modRegex("\\bmodule\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression funcRegex("\\bfunction\\s+([A-Za-z_][A-Za-z0-9_]*)", QRegularExpression::CaseInsensitiveOption);
     QRegularExpression varRegex("\\b([A-Za-z_][A-Za-z0-9_]*)\\s*=", QRegularExpression::CaseInsensitiveOption);
     QSet<QString> modules;
+    QSet<QString> functions;
     QSet<QString> variables;
     QString *in;
     if(given_in == nullptr)
@@ -159,6 +163,12 @@ void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
             modules.insert(match.captured(1));
         }
 
+        QRegularExpressionMatchIterator itfunc = funcRegex.globalMatch(line);
+        while (itfunc.hasNext()) {
+            QRegularExpressionMatch match = itfunc.next();
+            functions.insert(match.captured(1));
+        }
+
         QRegularExpressionMatchIterator itvar = varRegex.globalMatch(line);
         while (itvar.hasNext()) {
             QRegularExpressionMatch match = itvar.next();
@@ -168,13 +178,13 @@ void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
         // 1. Regex pour valider un nom de paramètre individuel
         QRegularExpression paramValidator(R"(^[A-Za-z_][A-Za-z0-9_]*$)");
 
-        // 2. Regex globale pour capturer le module et son bloc d'arguments
-        QRegularExpression rx(R"(\bmodule\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\))");
+        // 2. Regex globale pour capturer le module ou la fonction et son bloc d'arguments
+        QRegularExpression rx(R"(\b(module|function)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\))");
         QRegularExpressionMatchIterator itvarmod = rx.globalMatch(line);
 
         while (itvarmod.hasNext()) {
             QRegularExpressionMatch match = itvarmod.next();
-            QString argsBlock = match.captured(2);
+            QString argsBlock = match.captured(3);//Take 3e () inside regex
 
             // On découpe par rapport à la virgule
             QStringList params = argsBlock.split(',', Qt::SkipEmptyParts);
@@ -197,9 +207,9 @@ void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
     // Transmettre les nouveaux symboles à l'highlighter (qui appellera rehighlight())
     if (highlighter) {
     	if(static_rules)
-    		highlighter->setIncludesRules(modules, variables);
+    		highlighter->setIncludesRules(modules+functions, variables);
     	else
-    		highlighter->setDynamicSymbols(modules, variables);
+    		highlighter->setDynamicSymbols(modules+functions, variables);
     }
 
     if (completer) {
@@ -215,6 +225,14 @@ void MainWindow::refreshDynamicSymbols(QString *given_in, bool static_rules) {
             // 2. Ajouter les modules détectés
             for (const QString &mod : modules) {
                 QString cleanMod = mod.trimmed();
+                if (!cleanMod.isEmpty()) {
+                    allCompletions << cleanMod;
+                }
+            }
+
+            // 2.5 Ajouter les functions détectés
+            for (const QString &func : functions) {
+                QString cleanMod = func.trimmed();
                 if (!cleanMod.isEmpty()) {
                     allCompletions << cleanMod;
                 }
@@ -257,6 +275,7 @@ MainWindow::MainWindow(QWidget *parent)
     setupUi();
     applyDarkStyle();
     loadEnvironmentProfiles();
+    loadFilterSettings();
     clearOutput();
 }
 
@@ -434,6 +453,33 @@ void MainWindow::setupUi() {
     messagesTitle->setStyleSheet("font-weight: bold;");
     messagesHeaderLayout->addWidget(messagesTitle);
 
+    // Création du bouton de filtre déroulant
+	filterButton = new QToolButton(this);
+	filterButton->setText(tr("Filtres"));
+	filterButton->setPopupMode(QToolButton::InstantPopup);
+
+	QMenu *filterMenu = new QMenu(this);
+
+	// Exemple d'actions cochables pour les principaux filtres
+	// (Vous pouvez créer une action par état ou par grande catégorie)
+	actErrors = filterMenu->addAction(tr("Erreurs (Error, ParseError)"));
+	actErrors->setCheckable(true);
+	actErrors->setChecked(true);
+
+	actMessages = filterMenu->addAction(tr("Messages généraux"));
+	actMessages->setCheckable(true);
+	actMessages->setChecked(true);
+
+	actStates = filterMenu->addAction(tr("États d'exécution (Init, Run, etc.)"));
+	actStates->setCheckable(true);
+	actStates->setChecked(false); // Souvent masqué par défaut pour éviter le bruit visuel
+
+	filterButton->setMenu(filterMenu);
+
+	messagesHeaderLayout->addWidget(messagesTitle);
+	messagesHeaderLayout->addStretch(); // Pousse le bouton à droite
+	messagesHeaderLayout->addWidget(filterButton);
+
     messagesList = new QListWidget(this);
 
     messagesLayout->addWidget(messagesHeader);
@@ -458,6 +504,9 @@ void MainWindow::setupUi() {
     connect(saveOutputBtn, &QPushButton::clicked, this, &MainWindow::saveOutput);
     connect(messagesList, &QListWidget::itemClicked, this, &MainWindow::onMessageClicked);
     connect(editor, &QPlainTextEdit::textChanged, this, &MainWindow::onTextChanged);
+    connect(actErrors, &QAction::toggled, this, &MainWindow::applyFilters);
+    connect(actStates, &QAction::toggled, this, &MainWindow::applyFilters);
+    connect(actMessages, &QAction::toggled, this, &MainWindow::applyFilters);
 
     connect(environmentProfileCombo,
             QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -484,6 +533,58 @@ void MainWindow::setupUi() {
 
     setupCompleter();
     resize(1100, 700);
+}
+
+void MainWindow::applyFilters() {
+    bool showErrors = actErrors->isChecked();
+    bool showMessages = actMessages->isChecked();
+    bool showStates = actStates->isChecked();
+
+    for (int i = 0; i < messagesList->count(); ++i) {
+        QListWidgetItem *item = messagesList->item(i);
+        OpRunningState state = static_cast<OpRunningState>(item->data(Qt::UserRole + 5).toInt());
+
+        bool visible = true;
+        if (state == Error || state == ParseError) visible = showErrors;
+        else if (state == Message) visible = showMessages;
+        else visible = showStates; // Init, Run, Finished, etc.
+
+        item->setHidden(!visible);
+    }
+    saveFilterSettings();
+}
+
+void MainWindow::saveFilterSettings() {
+    QSettings settings("CairoDSL", "CairoDSL");
+
+    // On sort de la hiérarchie des profils pour stocker ça proprement au niveau racine
+    settings.beginGroup("MessageFilters");
+    settings.setValue("showErrors", actErrors->isChecked());
+    settings.setValue("showMessages", actMessages->isChecked());
+    settings.setValue("showStates", actStates->isChecked());
+    settings.endGroup();
+}
+
+void MainWindow::loadFilterSettings() {
+	QSettings settings("CairoDSL", "CairoDSL");
+	settings.beginGroup("MessageFilters");
+	bool defaultErrors = settings.value("showErrors", true).toBool();
+	bool defaultMessages = settings.value("showMessages", true).toBool();
+	bool defaultStates = settings.value("showStates", false).toBool();
+	if(defaultErrors)
+		actErrors->setChecked(true);
+	else
+		actErrors->setChecked(false);
+	if(defaultMessages)
+		actMessages->setChecked(true);
+	else
+		actMessages->setChecked(false);
+	if(defaultStates)
+		actStates->setChecked(true);
+	else
+		actStates->setChecked(false);
+	settings.endGroup();
+	applyFilters();
 }
 
 void MainWindow::setupCompleter() {
@@ -786,7 +887,7 @@ void MainWindow::openFile() {
         filenameLabel->setText(QFileInfo(filePath).fileName());
         clearOutput();
     } else {
-        addLocalMessage("Error", "Impossible de lire le fichier.");
+        addLocalMessage(Error, "Impossible de lire le fichier.");
     }
 }
 
@@ -806,7 +907,7 @@ void MainWindow::saveSource() {
         currentFilePath = filePath;
         filenameLabel->setText(QFileInfo(filePath).fileName());
     } else {
-        addLocalMessage("Error", "Impossible d'enregistrer le fichier.");
+        addLocalMessage(Error, "Impossible d'enregistrer le fichier.");
     }
 }
 
@@ -823,7 +924,7 @@ void MainWindow::saveSourceAs() {
         currentFilePath = filePath;
         filenameLabel->setText(QFileInfo(filePath).fileName());
     } else {
-        addLocalMessage("Error", "Impossible d'enregistrer le fichier.");
+        addLocalMessage(Error, "Impossible d'enregistrer le fichier.");
     }
 }
 
@@ -831,7 +932,7 @@ void MainWindow::saveSourceAs() {
 void MainWindow::processCode() {
     clearMessages();
     clearOutput();
-    addLocalMessage("Run", "Traitement en cours par la bibliothèque C++...");
+    addLocalMessage(Run, "Traitement en cours par la bibliothèque C++...");
 
     applyEnvironmentProfile();
 
@@ -848,7 +949,7 @@ void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &ou
     QDomDocument doc;
     if (!doc.setContent(xmlText)) {
 
-        addLocalMessage("ParseError", "XML invalide retourné par la bibliothèque.");
+        addLocalMessage(ParseError, "XML invalide retourné par la bibliothèque.");
         return;
     }
 
@@ -867,10 +968,10 @@ void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &ou
     for (int i = 0; i < msgNodes.count(); ++i) {
         QDomElement msgElem = msgNodes.at(i).toElement();
         MessageItem item;
-        item.state = msgElem.firstChildElement("running-state").text();
+        bool ok = false;
+        item.state = (OpRunningState)msgElem.firstChildElement("running-state").text().toInt(&ok);
         item.text = msgElem.firstChildElement("text").text();
 
-        bool ok;
         int val = msgElem.firstChildElement("pos").firstChildElement("first_line").text().toInt(&ok);
         if (ok) item.firstLine = val;
         val = msgElem.firstChildElement("pos").firstChildElement("first_column").text().toInt(&ok);
@@ -882,6 +983,7 @@ void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &ou
 
         addMessage(item);
     }
+    applyFilters();
 }
 
 void MainWindow::displayOutputSvg(const QByteArray &svgData) {
@@ -890,7 +992,7 @@ void MainWindow::displayOutputSvg(const QByteArray &svgData) {
 
     /*QSvgRenderer renderer(svgData);
     if (!renderer.isValid()) {
-        addLocalMessage("ParseError", "Le contenu SVG est invalide.");
+        addLocalMessage(ParseError, "Le contenu SVG est invalide.");
         return;
     }
 
@@ -910,7 +1012,7 @@ void MainWindow::displayOutputSvg(const QByteArray &svgData) {
 void MainWindow::displayOutputPng(const QByteArray &pngData) {
     QPixmap pixmap;
     if (!pixmap.loadFromData(pngData, "PNG")) {
-        addLocalMessage("Error", "Impossible de lire le rendu PNG.");
+        addLocalMessage(Error, "Impossible de lire le rendu PNG.");
         saveOutputBtn->setEnabled(false);
         return;
     }
@@ -947,14 +1049,13 @@ void MainWindow::addMessage(const MessageItem &msg) {
     QString stateIcon = "•";
     QString borderStyle = "border-left: 3px solid #777;";
 
-    QString normState = msg.state.toLower();
-    if (normState == "ready" || normState == "finished") {
+    if (msg.state == Ready || msg.state == Finished) {
         stateIcon = "✓";
         borderStyle = "border-left: 3px solid #4caf50;";
-    } else if (normState == "error" || normState == "parseerror") {
+    } else if (msg.state == Error || msg.state == ParseError) {
         stateIcon = "✗";
         borderStyle = "border-left: 3px solid #f44336; background-color: #351f20;";
-    } else if (normState == "run") {
+    } else if (msg.state == Run || msg.state == Message) {
         stateIcon = "▶";
     }
 
@@ -968,18 +1069,19 @@ void MainWindow::addMessage(const MessageItem &msg) {
     }
 
     QListWidgetItem *item = new QListWidgetItem(messagesList);
-    item->setText(QString("%1  %2  %3\n%4").arg(stateIcon, msg.state, posStr, msg.text));
+    item->setText(QString("%1  %2  %3\n%4").arg(stateIcon, _Op_get_running_state_string(msg.state), posStr, msg.text));
     
     // Sauvegarde des données de position dans l'élément de liste
     item->setData(Qt::UserRole + 1, msg.firstLine);
     item->setData(Qt::UserRole + 2, msg.firstColumn);
     item->setData(Qt::UserRole + 3, msg.lastLine);
     item->setData(Qt::UserRole + 4, msg.lastColumn);
+    item->setData(Qt::UserRole + 5, msg.state); // Stockage de l'enum
 
     messagesList->addItem(item);
 }
 
-void MainWindow::addLocalMessage(const QString &state, const QString &text) {
+void MainWindow::addLocalMessage(OpRunningState state, const QString &text) {
     MessageItem item;
     item.state = state;
     item.text = text;

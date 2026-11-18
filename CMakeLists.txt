@@ -193,6 +193,8 @@ endif()
 
 
 if( QTGUI)
+
+	add_definitions(-DQTGUI)
 	set(CMAKE_CXX_STANDARD 17)
 	set(CMAKE_AUTOMOC ON)
 	set(CMAKE_AUTORCC ON)
@@ -221,6 +223,7 @@ if( QTGUI)
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/main.cpp"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/mainwindow.cpp"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/mainwindow.h"
+	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoCompilerLib.cpp"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoCompilerLib.h"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslHighlighter.cpp"
 	    "${CMAKE_CURRENT_SOURCE_DIR}/Gui/QtGui/CairoDslHighlighter.h"

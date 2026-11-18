@@ -44,7 +44,7 @@ CairoDslHighlighter::CairoDslHighlighter(QTextDocument *parent)
     commentFormat.setFontItalic(true);
     rule.pattern = QRegularExpression("//[^\n]*");
     rule.format = commentFormat;
-    staticRules.append(rule);
+    staticPriorityRules.append(rule);
 }
 
 void CairoDslHighlighter::setIncludesRules(const QSet<QString> &modules, const QSet<QString> &variables)
@@ -114,7 +114,7 @@ void CairoDslHighlighter::setDynamicSymbols(const QSet<QString> &modules, const 
 
 void CairoDslHighlighter::highlightBlock(const QString &text) {
     // Combiner les deux listes pour le rendu de la ligne
-    QVector<HighlightingRule> allRules = dynamicRules + staticRules;
+    QVector<HighlightingRule> allRules = dynamicRules + staticRules + staticPriorityRules;
 
     for (const HighlightingRule &rule : qAsConst(allRules)) {
         QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
