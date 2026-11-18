@@ -3313,7 +3313,7 @@ void OpNewRadial_set_params(OpNewRadial *self, Op *v)
 int OpNewRadial_fix_operandes(OpNewRadial *self, OpContext *ctx)
 {
 	int ret = -1;
-	if(self->super.nb_ops >= 5)
+	if(self->super.nb_ops >= 6)
 	{
 		Op *x1, *y1, *r1, *x2, *y2, *r2, *params = NULL;
 		x1 = self->super.operandes[OPNEWRADIAL_X1];
@@ -3322,7 +3322,7 @@ int OpNewRadial_fix_operandes(OpNewRadial *self, OpContext *ctx)
 		x2 = self->super.operandes[OPNEWRADIAL_X2];
 		y2 = self->super.operandes[OPNEWRADIAL_Y2];
 		r2 = self->super.operandes[OPNEWRADIAL_R2];
-		if(self->super.nb_ops >= 6)
+		if(self->super.nb_ops >= 7)
 			params = self->super.operandes[OPNEWRADIAL_PARAMS];
 
 		if(x1 != NULL && y1 != NULL && r1 != NULL && x2 != NULL && y2 != NULL && r2 != NULL)

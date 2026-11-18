@@ -124,11 +124,20 @@ void CanvaCtx_terminate(CanvaCtx *self)
 {
 	String_finalize(&self->output_buffer);
     if(self->pixels != NULL)
+    {
     	free(self->pixels);
+    	self->pixels = NULL;
+    }
     if(self->cr != NULL)
+    {
     	cairo_destroy(self->cr);
+    	self->cr = NULL;
+    }
     if(self->surface != NULL)
+    {
     	cairo_surface_destroy(self->surface);
+    	self->surface = NULL;
+    }
     if(self->nb_patterns != 0)
     {
     	size_t cmpt;
@@ -137,6 +146,8 @@ void CanvaCtx_terminate(CanvaCtx *self)
     		if(self->patterns[cmpt] != NULL)
     			cairo_pattern_destroy(self->patterns[cmpt]);
     	}
+    	free(self->patterns);
+    	self->patterns = NULL;
     }
 }
 
@@ -333,9 +344,12 @@ void CanvaCtx_push_group(CanvaCtx *self)
 
 double CanvaCtx_pop_group(CanvaCtx *self)
 {
+	double ret;
 	log_trace("Cairo pop group to source %p\n", self->cr);
 	cairo_pattern_t *p = cairo_pop_group(self->cr);
-	return CanvaCtx_add_pattern(self, p);
+	ret = CanvaCtx_add_pattern(self, p);
+	cairo_pattern_destroy(p);
+	return ret;
 }
 
 double CanvaCtx_add_pattern(CanvaCtx *self, cairo_pattern_t *p)
@@ -369,16 +383,22 @@ int CanvaCtx_recall_pattern(CanvaCtx *self, double n)
 
 double CanvaCtx_new_linear_pattern(CanvaCtx *self, double x1, double y1, double x2, double y2)
 {
+	double ret;
 	cairo_pattern_t *p = cairo_pattern_create_linear(x1, y1, x2, y2);
 	log_trace("Cairo create linear pattern %f %f %f %f : %p\n", x1, y1, x2, y2, p);
-	return CanvaCtx_add_pattern(self, p);
+	ret = CanvaCtx_add_pattern(self, p);
+	cairo_pattern_destroy(p);
+	return ret;
 }
 
 double CanvaCtx_new_radial_pattern(CanvaCtx *self, double x1, double y1, double r1, double x2, double y2, double r2)
 {
+	double ret;
 	cairo_pattern_t *p = cairo_pattern_create_radial(x1, y1, r1, x2, y2, r2);
 	log_trace("Cairo create radial pattern %f %f %f %f %f %f : %p\n", x1, y1, r1, x2, y2, r2, p);
-	return CanvaCtx_add_pattern(self, p);
+	ret = CanvaCtx_add_pattern(self, p);
+	cairo_pattern_destroy(p);
+	return ret;
 }
 
 int CanvaCtx_add_stop_rgba(CanvaCtx *self, size_t p, double o, double r, double g, double b, double a, String *err_msg)
