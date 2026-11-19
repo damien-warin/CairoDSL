@@ -191,6 +191,7 @@ target_link_libraries(CairoInterpreterLib PRIVATE SDL2::SDL2)
 target_link_libraries(CairoInterpreter PRIVATE SDL2::SDL2)
 endif()
 
+include(functionnaltests.cmake)
 
 if( QTGUI)
 

@@ -39,6 +39,12 @@ sudo apt install build-essential cmake bison flex python3 \
     libcairo2-dev libxml2-dev libsdl2-dev libb64-dev uthash-dev
 ```
 
+### Dépendances supplémentaires pour les tests fonctionnels
+
+```bash
+sudo apt install python3-cairosvg python3-numpy python3-pillow
+```
+
 ### Dépendances supplémentaires pour Qt
 
 L'interface graphique Qt nécessite Qt 6 et quelques bibliothèques complémentaires :
@@ -60,7 +66,7 @@ Plusieurs options CMake permettent d'adapter la compilation aux différents envi
 | `NOSDL` | Désactive la prise en charge de SDL2 pour la sortie graphique. L'interpréteur fonctionne alors sans dépendance à SDL2, notamment en mode Bash ou CGI. |
 | `CGIMODE` | Active le mode serveur CGI : génération d'une sortie XML complète avec les en-têtes HTTP et prise en compte de `CONTENT_LENGTH` pour la lecture des données en entrée. |
 | `QTGUI` | Compile l'interface graphique Qt. Actuellement incompatible avec la compilation SDL2. |
-| `BUILD_UNITTESTS` | Active ou désactive la compilation des tests unitaires. |
+| `BUILD_TESTS` | Active ou désactive la compilation des tests unitaires et fonctionnels. |
 | `UPDISTANT` | Option de compilation complémentaire du projet. |
 
 ---

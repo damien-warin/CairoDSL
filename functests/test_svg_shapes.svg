@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 10 10 L 110 10 L 110 70 L 10 70 Z M 10 10 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 130 10 L 230 10 L 230 70 L 130 70 Z M 130 10 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 320 40 C 320 56.570312 306.570312 70 290 70 C 273.429688 70 260 56.570312 260 40 C 260 23.429688 273.429688 10 290 10 C 306.570312 10 320 23.429688 320 40 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 460 40 C 460 56.570312 433.136719 70 400 70 C 366.863281 70 340 56.570312 340 40 C 340 23.429688 366.863281 10 400 10 C 433.136719 10 460 23.429688 460 40 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 10 100 L 110 150 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 140 150 L 170 100 L 200 150 L 230 100 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 280 100 L 330 150 L 230 150 Z M 280 100 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 350 100 L 450 100 L 400 150 Z M 350 100 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 10 200 C 43.332031 166.667969 76.667969 166.667969 110 200 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 140 200 C 160 150 210 250 230 200 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 280 200 C 280 183.429688 302.386719 170 330 170 C 357.613281 170 380 183.429688 380 200 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 10 280 L 70 280 L 70 340 L 10 340 Z M 10 280 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 140 310 C 140 326.570312 126.570312 340 110 340 C 93.429688 340 80 326.570312 80 310 C 80 293.429688 93.429688 280 110 280 C 126.570312 280 140 293.429688 140 310 "/>
+<path fill-rule="nonzero" fill="rgb(0%, 0%, 0%)" fill-opacity="1" d="M 180 280 L 210 340 L 150 340 Z M 180 280 "/>
+</svg>

@@ -7,7 +7,7 @@ if(NOT EXTERNAL_PROJECT)
     # Thanks to http://neyasystems.com/an-engineers-guide-to-unit-testing-cmake-and-boost-unit-tests/ for this part
     #Setup CMake to run tests
     option(BUILD_UNITTESTS "Create unittests target in makefile with allow to run unittests put into tests directory")
-    if(BUILD_UNITTESTS)
+    if(BUILD_TESTS)
         enable_testing()
 
         #I like to keep test files in a separate source directory called test
