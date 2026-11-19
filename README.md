@@ -197,7 +197,7 @@ http://localhost:8000/Editor.html
 
 ## 6. Documentation
 
-The `doc.odt` file contains the CairoDSL language documentation.
+The `docs` folder contains the CairoDSL language documentation.
 
 It describes the main language instructions, available features and their usage.
 
