@@ -11,7 +11,7 @@ if(NOT EXTERNAL_PROJECT)
         enable_testing()
 
         #I like to keep test files in a separate source directory called test
-        file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} tests/*.c)
+        file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} unittests/*.c)
 
         #Run through each source
         foreach(testSrc ${TEST_SRCS})
