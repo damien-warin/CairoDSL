@@ -466,11 +466,11 @@ void MainWindow::setupUi() {
 	actErrors->setCheckable(true);
 	actErrors->setChecked(true);
 
-	actMessages = filterMenu->addAction(tr("Messages généraux"));
+	actMessages = filterMenu->addAction(tr("General messages"));
 	actMessages->setCheckable(true);
 	actMessages->setChecked(true);
 
-	actStates = filterMenu->addAction(tr("États d'exécution (Init, Run, etc.)"));
+	actStates = filterMenu->addAction(tr("Execution states (Init, Run, etc.)"));
 	actStates->setCheckable(true);
 	actStates->setChecked(false); // Souvent masqué par défaut pour éviter le bruit visuel
 
@@ -640,6 +640,15 @@ void MainWindow::applyDarkStyle() {
 		}
 
         QPushButton {
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 12px;
+            margin-left: 4px;
+        }
+
+        QToolButton {
             background-color: #555;
             color: white;
             border: none;
