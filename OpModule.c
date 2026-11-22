@@ -94,11 +94,6 @@ OpCanvaContext *OpModule_get_context(OpModule *self)
 	return self->ctx;
 }
 
-void OpModule_export_messages_to_xml(OpModule *self, String *xml)
-{
-	OpContext_export_messages_to_xml((OpContext*)self->ctx, xml);
-}
-
 OpCanvaBloc *OpModule_get_root(OpModule *self)
 {
 	return self->root;
@@ -261,7 +256,6 @@ int OpLaunchModule_execute(OpLaunchModule *self, OpContext *ctx)
 		String_finalize(&msg);
 	}
 	OpModule_set_current_launcher(self->module, NULL);
-	OpContext_transfert_messages_to_other((OpContext*)c, (OpContext*)OpModule_get_context(self->module));
 	OpCanvaContext_free(c);
 
 	return ret;

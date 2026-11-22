@@ -32,6 +32,7 @@ typedef struct op_program
 	size_t number_of_functions;
 	OpImport **imports;
 	size_t number_of_imports;
+	LinkedList messages;
 }OpProgram;
 
 typedef struct yy_buffer_state *YY_BUFFER_STATE;

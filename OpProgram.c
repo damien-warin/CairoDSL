@@ -38,6 +38,7 @@ void OpProgram_init(OpProgram *self)
 	self->number_of_imports = 0;
 	self->root = NULL;
 	self->ctx = NULL;
+	LinkedList_init(&self->messages);
 }
 
 void OpProgram_terminate(OpProgram *self)
@@ -86,6 +87,8 @@ void OpProgram_terminate(OpProgram *self)
 			self->imports = NULL;
 		}
 	}
+	LinkedList_do_to_all(&self->messages, (void(*)(void*,void*))OpMessage_free, NULL);
+	LinkedList_finalize(&self->messages);
 }
 
 void OpProgram_free(OpProgram *self)
@@ -269,27 +272,17 @@ OpContext *OpProgram_get_context(OpProgram *self)
 	return self->ctx;
 }
 
+void OpProgram_add_message(OpProgram *self, OpMessage *msg)
+{
+	LinkedList_append(&self->messages, msg);
+}
+
 void OpProgram_export_to_xml(OpProgram *self, String *xml, bool with_output)
 {
 	String_append_char_string(xml, "<xml>");
 	OpCanvaContext_export_messages_to_xml((OpCanvaContext*)self->ctx, xml, with_output);
 	String_append_char_string(xml, "<msgs>");
-	OpContext_export_messages_to_xml(self->ctx, xml);
-	size_t i;
-	for(i = 0; i < self->number_of_modules; i++)
-	{
-		OpModule *m = self->modules[i];
-		if(m == NULL)
-			continue;
-		OpModule_export_messages_to_xml(m, xml);
-	}
-	for(i = 0; i < self->number_of_functions; i++)
-	{
-		OpModule *m = self->functions[i];
-		if(m == NULL)
-			continue;
-		OpModule_export_messages_to_xml(m, xml);
-	}
+	LinkedList_do_to_all(&self->messages, (void(*)(void*, void*))OpMessage_append_to_string_xml, xml);
 	String_append_char_string(xml, "</msgs>");
 	String_append_char_string(xml, "</xml>");
 }
@@ -297,6 +290,7 @@ void OpProgram_export_to_xml(OpProgram *self, String *xml, bool with_output)
 void OpProgram_set_context(OpProgram *self, OpContext *ctx)
 {
 	self->ctx = ctx;
+	OpContext_set_program(ctx, self);
 }
 
 void OpProgram_set_root(OpProgram *self, Op *root)

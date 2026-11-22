@@ -18,6 +18,8 @@ extern "C" {
 #include <LinkedList.h>
 #include <String.h>
 
+typedef struct op_program OpProgram;
+
 typedef enum op_variable_type
 {
 	NONE,
@@ -77,7 +79,7 @@ typedef struct op_context
 	OpVariable current_value;
 	OpVariable **variables;
 	size_t number_of_variables;
-	LinkedList messages;
+	OpProgram *program;
 }OpContext;
 
 typedef struct op Op;

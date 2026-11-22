@@ -16,6 +16,7 @@ OpModule *OpProgram_get_function(OpProgram *self, size_t num);
 size_t OpProgram_add_import(OpProgram *self, OpImport *import);
 OpImport *OpProgram_get_import(OpProgram *self, size_t num);
 OpContext *OpProgram_get_context(OpProgram *self);
+void OpProgram_add_message(OpProgram *self, OpMessage *msg);
 void OpProgram_export_to_xml(OpProgram *self, String *xml, _Bool with_output);
 void OpProgram_set_context(OpProgram *self, OpContext *ctx);
 void OpProgram_set_root(OpProgram *self, Op *root);

@@ -12,7 +12,6 @@ size_t OpModule_get_nb_argument(OpModule *self);
 void OpModule_add_to_root(OpModule *self, Op *op);
 void OpModule_duplicate_context(OpModule *self, OpCanvaContext *ctx);
 OpCanvaContext *OpModule_get_context(OpModule *self);
-void OpModule_export_messages_to_xml(OpModule *self, String *xml);
 OpCanvaBloc *OpModule_get_root(OpModule *self);
 int OpModule_fix_operandes(OpModule *self);
 void OpModule_set_name(OpModule *self, const char *name);
