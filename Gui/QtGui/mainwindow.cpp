@@ -946,7 +946,7 @@ void MainWindow::processCode() {
     applyEnvironmentProfile();
 
     // Appel direct à la lib C++ au lieu de la requête HTTP
-    QString msgs;
+    QList<struct MessageItem> msgs;
     QByteArray out;
     bool is_xml = true;
     int ret = processlib(editor->toPlainText(), currentFilePath, msgs, out, is_xml, &width, &height);
@@ -954,14 +954,7 @@ void MainWindow::processCode() {
     processXmlResponse(msgs, out, is_xml, ret);
 }
 
-void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &out, bool is_xml, int ret) {
-    QDomDocument doc;
-    if (!doc.setContent(xmlText)) {
-
-        addLocalMessage(ParseError, "XML invalide retourné par la bibliothèque.");
-        return;
-    }
-
+void MainWindow::processXmlResponse(QList<struct MessageItem> &msg, const QByteArray &out, bool is_xml, int ret) {
     if(ret == 0)
     {
 		if (is_xml) {
@@ -973,25 +966,9 @@ void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &ou
 
     // Traitement des messages (<msgs><msg>...)
     clearMessages();
-    QDomNodeList msgNodes = doc.elementsByTagName("msg");
-    for (int i = 0; i < msgNodes.count(); ++i) {
-        QDomElement msgElem = msgNodes.at(i).toElement();
-        MessageItem item;
-        bool ok = false;
-        item.state = (OpRunningState)msgElem.firstChildElement("running-state").text().toInt(&ok);
-        item.text = msgElem.firstChildElement("text").text();
-        item.filename = msgElem.firstChildElement("pos").firstChildElement("filename").text();
-
-        int val = msgElem.firstChildElement("pos").firstChildElement("first_line").text().toInt(&ok);
-        if (ok) item.firstLine = val;
-        val = msgElem.firstChildElement("pos").firstChildElement("first_column").text().toInt(&ok);
-        if (ok) item.firstColumn = val;
-        val = msgElem.firstChildElement("pos").firstChildElement("last_line").text().toInt(&ok);
-        if (ok) item.lastLine = val;
-        val = msgElem.firstChildElement("pos").firstChildElement("last_column").text().toInt(&ok);
-        if (ok) item.lastColumn = val;
-
-        addMessage(item);
+    for(auto it = msg.cbegin(); it != msg.cend(); it++)
+    {
+    	addMessage(*it);
     }
     applyFilters();
 }

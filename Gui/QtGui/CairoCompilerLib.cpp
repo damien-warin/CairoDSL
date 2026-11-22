@@ -20,7 +20,7 @@ extern "C"
 
 extern int yycolumn;
 extern int yylineno;
-int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *is_xml, int *width, int *height)
+int cairo_parse(String *buffer, String *prefix, String *out, QList<struct MessageItem> &msgs, int *is_xml, int *width, int *height)
 {
 	log_set_level(LOG_INFO);
 	CanvaCtx Canva;
@@ -69,7 +69,7 @@ int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *
 			OpProgram_run(&Prog);
 
 			CanvaCtx_write_to_png(&Canva);
-			OpProgram_export_to_xml(&Prog, msgs, false);
+
 			CanvaCtx_fill_buffer_with_output(&Canva, out);
 			*is_xml = 0;
 
@@ -89,15 +89,32 @@ int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *
 			OpProgram_run(&Prog);
 
 			CanvaCtx_finish(&Canva);
-			OpProgram_export_to_xml(&Prog, msgs, false);
 			CanvaCtx_fill_buffer_with_output(&Canva, out);
 
 			*is_xml = 1;
 			CanvaCtx_terminate(&Canva);
 		}
 	}
-	else
-		OpProgram_export_to_xml(&Prog, msgs, false);
+
+	LinkedListIterator *ite = OpProgram_get_messages(&Prog);
+    while(!LinkedListIterator_is_eol(ite))
+    {
+    	LinkedListIterator_go_to_next(ite);
+    	OpMessage *m = (OpMessage*)LinkedListIterator_get_current_value(ite);
+    	if(m != NULL)
+    	{
+    		MessageItem i;
+    		i.filename = String_get_char_string(&m->filename);
+    		i.firstLine = m->pos.first_line;
+    		i.firstColumn = m->pos.first_column;
+    		i.lastLine = m->pos.last_line;
+    		i.lastColumn = m->pos.last_column;
+    		i.state = m->state;
+    		i.text = String_get_char_string(&m->msg);
+    		msgs.append(i);
+    	}
+    }
+    LinkedListIterator_free(ite);
 
 	OpCanvaContext_terminate(&Ctx);
 	OpProgram_terminate(&Prog);
@@ -107,7 +124,7 @@ int cairo_parse(String *buffer, String *prefix, String *out, String *msgs, int *
 }
 
 // Méthode simulée qui prend le code DSL et retourne le XML
-int processlib(const QString& code, const QString &filepath, QString& msgs, QByteArray &output, bool &is_xml, int *width, int *height) {
+int processlib(const QString& code, const QString &filepath, QList<struct MessageItem> &msgs, QByteArray &output, bool &is_xml, int *width, int *height) {
 
 	QByteArray ba = code.toUtf8();
 
@@ -124,25 +141,22 @@ int processlib(const QString& code, const QString &filepath, QString& msgs, QByt
 	size_t p_length = static_cast<size_t>(bap.size());
 	String_append_data(&path, p_length, (const void*)p_str);
 
-	String out, Smsgs;
+	String out;
 	// Remplace ce stub par l'appel effectif à ton moteur/bibliothèque.
 	// Exemple de réponse XML retournée par la lib :
 	String_init(&out);
-	String_init(&Smsgs);
 	qDebug() << "Code : " << code;
 	qDebug() << "Code Array : " << ba;
 	int is_xml_int;
-	int ret = cairo_parse(scode, &path, &out, &Smsgs, &is_xml_int, width, height);
+	int ret = cairo_parse(scode, &path, &out, msgs, &is_xml_int, width, height);
 
 	if(ret == 0)
 	{
 		is_xml_int == 1 ? is_xml = true : is_xml = false;
 
 		output = QByteArray(String_get_data(&out), static_cast<qsizetype>(String_get_length(&out)));
-		msgs = QString::fromUtf8(String_get_char_string(&Smsgs), static_cast<qsizetype>(String_get_length(&Smsgs)));
 	}
 	String_finalize(&out);
-	String_finalize(&Smsgs);
 	String_finalize(&path);
 
 	return ret;

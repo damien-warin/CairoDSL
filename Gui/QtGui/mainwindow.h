@@ -19,16 +19,6 @@
 #include "CairoCompilerLib.h"
 #include <Op.h>
 
-struct MessageItem {
-	OpRunningState state;
-    QString text;
-    QString filename;
-    int firstLine = -1;
-    int firstColumn = -1;
-    int lastLine = -1;
-    int lastColumn = -1;
-};
-
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -64,7 +54,7 @@ private:
     void scanFileAndIncludes(const QString &, QSet<QString> &, QSet<QString> &, QSet<QString> &);
 
 
-    void processXmlResponse(const QString &xmlText,
+    void processXmlResponse(QList<struct MessageItem> &msg,
                             const QByteArray &out,
                             bool is_xml,
                             int ret);

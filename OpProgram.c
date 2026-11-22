@@ -287,6 +287,11 @@ void OpProgram_export_to_xml(OpProgram *self, String *xml, bool with_output)
 	String_append_char_string(xml, "</xml>");
 }
 
+LinkedListIterator *OpProgram_get_messages(OpProgram *self)
+{
+	return LinkedListIterator_new(&self->messages);
+}
+
 void OpProgram_set_context(OpProgram *self, OpContext *ctx)
 {
 	self->ctx = ctx;

@@ -18,6 +18,7 @@ OpImport *OpProgram_get_import(OpProgram *self, size_t num);
 OpContext *OpProgram_get_context(OpProgram *self);
 void OpProgram_add_message(OpProgram *self, OpMessage *msg);
 void OpProgram_export_to_xml(OpProgram *self, String *xml, _Bool with_output);
+LinkedListIterator *OpProgram_get_messages(OpProgram *self);
 void OpProgram_set_context(OpProgram *self, OpContext *ctx);
 void OpProgram_set_root(OpProgram *self, Op *root);
 OpParser *OpParser_new(void);
