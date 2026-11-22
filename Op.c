@@ -329,6 +329,7 @@ bool double_eq(double a, double b)
 void OpMessage_init(OpMessage *self)
 {
 	String_init(&self->msg);
+	String_init(&self->filename);
 	memset(&self->pos, 0, sizeof(SourcePos));
 	self->state = Init;
 }
@@ -344,20 +345,24 @@ OpMessage *OpMessage_new(void)
 void OpMessage_terminate(OpMessage *self)
 {
 	String_finalize(&self->msg);
+	String_finalize(&self->filename);
 }
 
-void OpMessage_set_params(OpMessage *self, SourcePos *pos, OpRunningState state, String *msg)
+void OpMessage_set_params(OpMessage *self, SourcePos *pos, String *filename, OpRunningState state, String *msg)
 {
 	if(pos != NULL)
 		memcpy(&self->pos, pos, sizeof(SourcePos));
 	self->state = state;
 	String_cpy(&self->msg, msg);
+	if(filename != NULL)
+		String_cpy(&self->filename, filename);
 }
 
 void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 {
 #ifndef QTGUI
-	String_append_printf(s, "<msg><pos><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%s</running-state><text>%s</text></msg>",
+	String_append_printf(s, "<msg><pos><filename>%s</filename><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%s</running-state><text>%s</text></msg>",
+								String_get_char_string(&self->filename),
 								self->pos.first_line,
 								self->pos.first_column,
 								self->pos.last_line,
@@ -365,7 +370,8 @@ void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 								_Op_get_running_state_string(self->state),
 								String_get_char_string(&self->msg));
 #else
-	String_append_printf(s, "<msg><pos><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%d</running-state><text>%s</text></msg>",
+	String_append_printf(s, "<msg><pos><filename>%s</filename><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%d</running-state><text>%s</text></msg>",
+								String_get_char_string(&self->filename),
 								self->pos.first_line,
 								self->pos.first_column,
 								self->pos.last_line,
@@ -398,12 +404,19 @@ void OpContext_init(OpContext *self)
 	OpVariable_init(&self->current_value);
 	self->variables = NULL;
 	self->number_of_variables = 0;
+	String_init(&self->filename);
+}
+
+void OpContext_set_filename(OpContext *self, const String *filename)
+{
+	String_cpy(&self->filename, filename);
 }
 
 void OpContext_terminate(OpContext *self)
 {
 	OpContext_free_variables(self);
 	OpVariable_terminate(&self->current_value);
+	String_finalize(&self->filename);
 }
 
 void OpContext_free_variables(OpContext *self)
@@ -450,12 +463,12 @@ void OpContext_set_running_state(OpContext *self, Op *sender, OpRunningState sta
 	OpMessage *msg = OpMessage_new();
 	if(sender != NULL)
 	{
-		OpMessage_set_params(msg, &sender->pos, state, &params);
+		OpMessage_set_params(msg, &sender->pos, &self->filename, state, &params);
 		String_append_printf(&log, "Context %p setting state %d '%s' @%d:%d\n", self, state, message, sender->pos.first_line, sender->pos.first_column);
 	}
 	else
 	{
-		OpMessage_set_params(msg, NULL, state, &params);
+		OpMessage_set_params(msg, NULL, NULL, state, &params);
 		String_append_printf(&log, "Context %p setting state %d '%s'\n", self, state, message);
 	}
 	String_finalize(&params);
@@ -491,6 +504,11 @@ void OpContext_copy_program(OpContext *self, OpContext *other)
 	self->program = other->program;
 }
 
+void OpContext_copy_filename(OpContext *self, OpContext *other)
+{
+	String_cpy(&self->filename, &other->filename);
+}
+
 void OpContext_report_parse_error(OpContext *self, const char *message, SourcePos *Pos)
 {
 	String s;
@@ -499,7 +517,7 @@ void OpContext_report_parse_error(OpContext *self, const char *message, SourcePo
 	log_error("Context %p parse error '%s' @%d:%d\n", self, message, Pos->first_line, Pos->first_column);
 	self->state = ParseError;
 	OpMessage *msg = OpMessage_new();
-	OpMessage_set_params(msg, Pos, ParseError, &s);
+	OpMessage_set_params(msg, Pos, &self->filename, ParseError, &s);
 	String_finalize(&s);
 
 	OpProgram_add_message(self->program, msg);

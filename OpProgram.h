@@ -40,6 +40,7 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 typedef struct op_parser_file
 {
 	YY_BUFFER_STATE state;
+	String filename;
 	String *file_content;
 	int column;
 	int line;
@@ -64,6 +65,7 @@ typedef struct op_parser
 	int inside_loop;
 	size_t auto_gen_vars;
 	Op *temp;
+	String current_filename;
 }OpParser;
 
 typedef struct op_parser_hash_elt

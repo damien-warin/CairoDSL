@@ -22,6 +22,7 @@
 struct MessageItem {
 	OpRunningState state;
     QString text;
+    QString filename;
     int firstLine = -1;
     int firstColumn = -1;
     int lastLine = -1;

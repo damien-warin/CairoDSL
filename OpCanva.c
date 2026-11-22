@@ -109,6 +109,7 @@ OpCanvaContext *OpCanvaContext_new_from_other(OpCanvaContext *other)
 		self->output_mode = other->output_mode;
 		OpContext_copy_variables((OpContext*)self, (OpContext*)other);
 		OpContext_copy_program((OpContext*)self, (OpContext*)other);
+		OpContext_copy_filename((OpContext*)self, (OpContext*)other);
 		OpContext_reset_variables((OpContext*)self);
 		OpContext_set_running_state(&self->super, NULL, OpContext_get_running_state(&other->super), "New Context for module");
 	}

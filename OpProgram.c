@@ -315,6 +315,7 @@ void OpParser_init(OpParser *self)
 	self->files_size = 0;
 	self->depth = 0;
 	String_init(&self->filename_prefix);
+	String_init(&self->current_filename);
 	LinkedList_init(&self->filenames);
 	self->inside_module = 0;
 	self->inside_function = 0;
@@ -434,13 +435,15 @@ void OpParser_parse_include(OpParser *self, const char *name)
     f->line = yylineno;
     yycolumn = 1;
     yylineno = 1;
-    YY_BUFFER_STATE state = yy_scan_bytes(String_get_data(new_stream), String_get_length(new_stream));
 
     f->file_content = new_stream;
-    f->state = state;
+    String_set_char_string(&f->filename, name);
     String_finalize(&filename);
 
     OpParser_push_stream(self, f);
+    //yy_scan_bytes will parse file, so we must push stream before to have correct info into parser, like filename, during parsing.
+    YY_BUFFER_STATE state = yy_scan_bytes(String_get_data(new_stream), String_get_length(new_stream));
+    f->state = state;
 }
 
 void OpParser_push_stream(OpParser *self, OpParserFile *s)
@@ -452,6 +455,7 @@ void OpParser_push_stream(OpParser *self, OpParserFile *s)
 		self->files_size = self->depth;
 	}
 	self->files[self->depth - 1] = s;
+	String_cpy(&self->current_filename, &s->filename);
 	log_trace("Parser push : depth = %d\n", self->depth);
 }
 
@@ -460,8 +464,13 @@ int OpParser_pop_stream(OpParser *self)
 	OpParserFile *f = self->files[self->depth - 1];
 	self->files[self->depth - 1] = NULL;
 	self->depth--;
+	String_empty(&self->current_filename);
 	if(self->depth > 0)
-		yy_switch_to_buffer(self->files[self->depth - 1]->state);
+	{
+		OpParserFile *last_f = self->files[self->depth - 1];
+		yy_switch_to_buffer(last_f->state);
+		String_cpy(&self->current_filename, &last_f->filename);
+	}
 	if(f != NULL)
 	{
 		yycolumn = f->column;
@@ -482,6 +491,7 @@ void OpParser_terminate(OpParser *self)
 	}
 	free(self->files);
 	String_finalize(&self->filename_prefix);
+	String_finalize(&self->current_filename);
 	LinkedList_do_to_all(&self->filenames, (void(*)(void*,void*))String_free, NULL);
 	LinkedList_finalize(&self->filenames);
 	if(self->temp != NULL)
@@ -520,6 +530,7 @@ void OpParser_push_current_context(OpParser *self, OpContext *ctx)
 	if(self->cur_context_nb >= self->nb_contexts)
 		self->contexts = realloc(self->contexts, sizeof(OpContext*) * ++self->nb_contexts);
 	self->contexts[++self->cur_context_nb - 1] = ctx;
+	OpContext_set_filename(ctx, &self->current_filename);
 }
 
 void OpParser_pop_current_context(OpParser *self)
@@ -2256,6 +2267,7 @@ void OpParserFile_init(OpParserFile *self)
 	self->file_content = NULL;
 	self->column = -1;
 	self->line = -1;
+	String_init(&self->filename);
 }
 
 OpParserFile *OpParserFile_new(void)
@@ -2272,6 +2284,7 @@ void OpParserFile_terminate(OpParserFile *self)
 		yy_delete_buffer(self->state);
 	if(self->file_content != NULL)
 		String_free(self->file_content);
+	String_init(&self->filename);
 }
 
 void OpParserFile_free(OpParserFile *self)

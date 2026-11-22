@@ -542,7 +542,7 @@ void MainWindow::applyFilters() {
 
     for (int i = 0; i < messagesList->count(); ++i) {
         QListWidgetItem *item = messagesList->item(i);
-        OpRunningState state = static_cast<OpRunningState>(item->data(Qt::UserRole + 5).toInt());
+        OpRunningState state = static_cast<OpRunningState>(item->data(Qt::UserRole + 6).toInt());
 
         bool visible = true;
         if (state == Error || state == ParseError) visible = showErrors;
@@ -980,6 +980,7 @@ void MainWindow::processXmlResponse(const QString &xmlText, const QByteArray &ou
         bool ok = false;
         item.state = (OpRunningState)msgElem.firstChildElement("running-state").text().toInt(&ok);
         item.text = msgElem.firstChildElement("text").text();
+        item.filename = msgElem.firstChildElement("pos").firstChildElement("filename").text();
 
         int val = msgElem.firstChildElement("pos").firstChildElement("first_line").text().toInt(&ok);
         if (ok) item.firstLine = val;
@@ -1069,11 +1070,15 @@ void MainWindow::addMessage(const MessageItem &msg) {
     }
 
     QString posStr;
+    if(msg.filename.isEmpty() == false)
+    {
+    	posStr = msg.filename + " ";
+    }
     if (msg.firstLine != -1) {
         if (msg.lastLine == -1) {
-            posStr = QString("ligne %1:%2").arg(msg.firstLine).arg(msg.firstColumn);
+            posStr += QString("ligne %1:%2").arg(msg.firstLine).arg(msg.firstColumn);
         } else {
-            posStr = QString("L%1:%2 → L%3:%4").arg(msg.firstLine).arg(msg.firstColumn).arg(msg.lastLine).arg(msg.lastColumn);
+            posStr += QString("L%1:%2 → L%3:%4").arg(msg.firstLine).arg(msg.firstColumn).arg(msg.lastLine).arg(msg.lastColumn);
         }
     }
 
@@ -1085,7 +1090,8 @@ void MainWindow::addMessage(const MessageItem &msg) {
     item->setData(Qt::UserRole + 2, msg.firstColumn);
     item->setData(Qt::UserRole + 3, msg.lastLine);
     item->setData(Qt::UserRole + 4, msg.lastColumn);
-    item->setData(Qt::UserRole + 5, msg.state); // Stockage de l'enum
+    item->setData(Qt::UserRole + 5, msg.filename);
+    item->setData(Qt::UserRole + 6, msg.state); // Stockage de l'enum
 
     messagesList->addItem(item);
 }
@@ -1099,6 +1105,9 @@ void MainWindow::addLocalMessage(OpRunningState state, const QString &text) {
 
 // Clic sur un message -> Selectionne le code correspondant dans l'éditeur
 void MainWindow::onMessageClicked(QListWidgetItem *item) {
+	QString filename = item->data(Qt::UserRole + 5).toString();
+	if(filename.isEmpty() == false)
+		return;//Not a message from main file, so we cannot highlight position in editor.
     int firstLine = item->data(Qt::UserRole + 1).toInt();
     int firstColumn = item->data(Qt::UserRole + 2).toInt();
     int lastLine = item->data(Qt::UserRole + 3).toInt();

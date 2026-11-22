@@ -69,6 +69,7 @@ typedef struct source_pos
 typedef struct op_message
 {
 	SourcePos pos;
+	String filename;
 	OpRunningState state;
 	String msg;
 }OpMessage;
@@ -80,6 +81,7 @@ typedef struct op_context
 	OpVariable **variables;
 	size_t number_of_variables;
 	OpProgram *program;
+	String filename;
 }OpContext;
 
 typedef struct op Op;
