@@ -1,4 +1,5 @@
 #include <Op.h>
+#include <OpProgram.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <String.h>
@@ -38,8 +39,11 @@ int main(int argc, char **argv)
 
     Op *o = Op_new(&Test1Op.super);
 
+    OpProgram p;
+    OpProgram_init(&p);
     OpContext c;
     OpContext_init(&c);
+    OpProgram_set_context(&p, &c);
 
     Op_execute(o, &c);
 
@@ -76,6 +80,7 @@ int main(int argc, char **argv)
     	fprintf(stderr, "compteur compute should be 0, check always return -1 : %d\n", compteur_compute);
     }
     OpContext_terminate(&c);
+    OpProgram_terminate(&p);
     Op_free(o);
 
     if(ret == 0)

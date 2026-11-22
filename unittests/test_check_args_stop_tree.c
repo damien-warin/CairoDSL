@@ -1,4 +1,5 @@
 #include <Op.h>
+#include <OpProgram.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <String.h>
@@ -68,9 +69,11 @@ int main(int argc, char **argv)
     	OpBloc_append_Op((OpBloc*)ob, o);
     }
 
-
+    OpProgram p;
+    OpProgram_init(&p);
     OpContext c;
     OpContext_init(&c);
+    OpProgram_set_context(&p, &c);
 
     Op_fix_operandes(ob, &c);
 
@@ -89,6 +92,7 @@ int main(int argc, char **argv)
     }
 
     OpContext_terminate(&c);
+    OpProgram_terminate(&p);
     Op_free(ob);
 
     if(ret == 0)
