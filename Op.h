@@ -245,6 +245,13 @@ typedef struct op_1_operandes
 
 }Op1;
 
+typedef struct op_DoubleToStr
+{
+	Op super;
+	Op *d;
+	Op *dec;
+}OpDoubleToStr;
+
 
 #include <Op.proto.h>
 

@@ -2471,9 +2471,17 @@ expression:
       }
 		| DTOSTR '(' expression ')'
       {
-      	Op1 *op = (Op1*)OpDoubleToStr_new();
+      	OpDoubleToStr *op = (OpDoubleToStr*)OpDoubleToStr_new();
       	$$ = (Op*)op;
-		Op1_set_operande(op, $3);
+		OpRectangle_set_double(op, $3);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+		| DTOSTR '(' expression ',' expression ')'
+      {
+      	OpDoubleToStr *op = (OpDoubleToStr*)OpDoubleToStr_new();
+      	$$ = (Op*)op;
+		OpRectangle_set_double(op, $3);
+		OpRectangle_set_decimals(op, $5);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
       }
 		| RADIANS '(' expression ')'

@@ -3271,7 +3271,7 @@ Op *OpStrToDouble_new(void)
 	return Op_new(&OpStrToDouble_isa.super);
 }
 
-int compute_DoubleToStr(OpVariable *res, OpVariable *v, String *err_msg)
+int compute_DoubleToStr(OpVariable *res, OpVariable *v, int decimals, String *err_msg)
 {
 	int ret = -1;
 	switch(OpVariable_get_type(v))
@@ -3281,7 +3281,10 @@ int compute_DoubleToStr(OpVariable *res, OpVariable *v, String *err_msg)
 						double d = OpVariable_get_double(v);
 						String s;
 						String_init(&s);
-						String_append_printf(&s, "%g", d);
+						if(decimals < 0)
+							String_append_printf(&s, "%g", d);
+						else
+							String_append_printf(&s, "%.*f", decimals, d);
 						ret = OpVariable_set_string(res, String_get_char_string(&s));
 						String_finalize(&s);
 					}
@@ -3295,7 +3298,10 @@ int compute_DoubleToStr(OpVariable *res, OpVariable *v, String *err_msg)
 						{
 							double d = ds[i];
 							String_empty(&s);
-							String_append_printf(&s, "%g", d);
+							if(decimals < 0)
+								String_append_printf(&s, "%g", d);
+							else
+								String_append_printf(&s, "%.*f", decimals, d);
 							ret = OpVariable_append_string(res, String_get_char_string(&s));
 							if(ret != 0)
 							{
@@ -3332,19 +3338,130 @@ int check_args_DoubleToStr(OpVariable *v)
 	return ret;
 }
 
-OpIsaOneOp OpDoubleToStr_isa = {
-		.super.name="DoubleToStr",
-		.super.size=sizeof(Op1),
-		.super.init = (void(*)(Op*))Op1_init,
-		.super.terminate = (void(*)(Op*))Op1_terminate,
-		.super.fix_operandes = (int(*)(Op*, OpContext*))Op1_fix_operandes,
-		.super.execute = (int(*)(Op*, OpContext*))Op1_execute,
-		.super.check_args = (int(*)(Op*,OpContext*))Op1_check_args,
-		.check_arg = check_args_DoubleToStr,
-		.compute = compute_DoubleToStr
+OpIsa OpDoubleToStr_isa = {
+		.name="OpDoubleToStr",
+		.size=sizeof(OpDoubleToStr),
+		.init = (void(*)(Op*))OpDoubleToStr_init,
+		.terminate = (void(*)(Op*))OpDoubleToStr_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))OpDoubleToStr_fix_operandes,
+		.execute = (int(*)(Op*, OpContext*))OpDoubleToStr_execute,
+		.check_args = (int(*)(Op*, OpContext*))OpDoubleToStr_check_args,
 };
+
+void OpDoubleToStr_init(OpDoubleToStr *self)
+{
+	Op_init(&self->super);
+	self->d = NULL;
+	self->dec = NULL;
+}
+
+void OpDoubleToStr_terminate(OpDoubleToStr *self)
+{
+	Op_terminate(&self->super);
+	_OpDoubleToStr_set_double(self, NULL);
+	_OpDoubleToStr_set_decimals(self, NULL);
+}
+
+
+int OpDoubleToStr_check_args(OpDoubleToStr *self, OpContext *canvactx)
+{
+	if(self->d != NULL)
+		return 0;
+	return -1;
+}
+
+int OpDoubleToStr_execute(OpDoubleToStr *self, OpContext *ctx)
+{
+	int ret = -1;
+	OpVariable v;
+	OpVariable_init(&v);
+	ret = Op_execute(self->d, ctx);
+	if(ret == 0)
+	{
+		OpVariable *cur = OpContext_get_current_value(ctx);
+		if(check_args_DoubleToStr(cur) == 0)
+		{
+			double decimals = -1;
+			OpVariable_copy(&v, cur);
+			if(self->dec != NULL)
+				ret = Op_execute_get_double(self->dec, (Op*)self, ctx, &decimals);
+			if(ret == 0)
+			{
+				OpVariable res;
+				String err_msg;
+				String_init(&err_msg);
+				OpVariable_init(&res);
+				ret = compute_DoubleToStr(&res, &v, decimals, &err_msg);
+				if(ret == 0)
+				{
+					OpContext_copy_variable_to_current_value(ctx, &res);
+				}
+				else
+				{
+					OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&err_msg));
+				}
+				OpVariable_terminate(&res);
+				String_finalize(&err_msg);
+			}
+		}
+		else
+		{
+			ret = -1;
+			OpContext_set_running_state(ctx, (Op*)self, Error, "Bad first operande type");
+		}
+	}
+	OpVariable_terminate(&v);
+	return ret;
+}
+
+void _OpDoubleToStr_set_double(OpDoubleToStr *self, Op *v)
+{
+	OP_SET_OPERANDE(self, d, v);
+}
+
+void _OpDoubleToStr_set_decimals(OpDoubleToStr *self, Op *v)
+{
+	OP_SET_OPERANDE(self, dec, v);
+}
+
+#define OPDOUBLETOSTR_D 0
+#define OPDOUBLETOSTR_DEC 1
+
+
+void OpRectangle_set_double(OpDoubleToStr *self, Op *v)
+{
+	OP_ADD_OPERANDE(self, v, OPDOUBLETOSTR_D);
+}
+
+void OpRectangle_set_decimals(OpDoubleToStr *self, Op *v)
+{
+	OP_ADD_OPERANDE(self, v, OPDOUBLETOSTR_DEC);
+}
+
+int OpDoubleToStr_fix_operandes(OpDoubleToStr *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->super.nb_ops >= 1)
+	{
+		Op *d, *dec = NULL;
+		d = self->super.operandes[OPDOUBLETOSTR_D];
+		if(self->super.nb_ops >= 2)
+			dec = self->super.operandes[OPDOUBLETOSTR_DEC];
+
+		if(d != NULL)
+		{
+			ret = 0;
+			_OpDoubleToStr_set_double(self, d);
+			if(dec != NULL)
+			{
+				_OpDoubleToStr_set_decimals(self, dec);
+			}
+		}
+	}
+	return ret;
+}
 
 Op *OpDoubleToStr_new(void)
 {
-	return Op_new(&OpDoubleToStr_isa.super);
+	return Op_new(&OpDoubleToStr_isa);
 }

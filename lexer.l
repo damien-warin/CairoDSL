@@ -112,8 +112,8 @@ int yycolumn = 1;
 (?i:"getlast")		{ return GETLAST; }
 (?i:"concat")		{ return CONCAT; }
 (?i:"unset")		{ return UNSET; }
-(?i:"strtod")		{ return STRTOD; }
-(?i:"dtostr")		{ return DTOSTR; }
+(?i:"todouble")		{ return STRTOD; }
+(?i:"tostring")		{ return DTOSTR; }
 (?i:"pi")			{ return PI; }
 (?i:"phi")			{ return PHI; }
 (?i:"gettimeinsecs")	{ return GETTIMEINSECS; }

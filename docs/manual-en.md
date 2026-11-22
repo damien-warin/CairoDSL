@@ -700,29 +700,32 @@ Two functions convert values between strings and numbers.
 **Converting a string to a number**
 
 ```cairo
-value = strtod("12.3");
+value = todouble("12.3");
 ```
 
-The `strtod()` function directly uses the standard C function of the same name.
+The `todouble()` function directly uses the standard C function strtod.
 
 It converts the beginning of the string into a floating-point number (`double`).
 
-If the string does not contain a valid numeric representation, `strtod` returns 0.
+If the string does not contain a valid numeric representation, `todouble` returns 0.
 
 **Converting a number to a string**
 
 ```cairo
-text = dtostr(12.3);
+text = tostring(12.3);
+text = tostring(12.3, 2);
 ```
 
-The `dtostr()` function converts a floating-point number into a string using the `%g` format.
+The `tostring()` function converts a floating-point number into a string using the `%g` format.
+
+The optionnal second parameter indicate the number of decimals.
 
 This format automatically adapts the representation of the number, choosing decimal or scientific notation depending on its value.
 
 Both functions can take an array of their input type and then return an array of their output type.
 
 ```cairo
-valeurs=strtod("12.3", "21", "42");//Values contains [12.3, 21, 42]
+valeurs=todouble("12.3", "21", "42");//Values contains [12.3, 21, 42]
 ```
 
 ## Chapter 9: Variables, Arrays and Strings
@@ -1051,10 +1054,10 @@ When retrieving multiple variables, a single missing variable is enough to trigg
 
 **Example: injecting external parameters**
 
-Combining `getenv()` and `strtod()` makes it easy to pass numeric parameters to the program through the execution environment.
+Combining `getenv()` and `todouble()` makes it easy to pass numeric parameters to the program through the execution environment.
 
 ```cairo
-angles = strtod(getenv(["angle1", "angle2", "angle3"]));
+angles = todouble(getenv(["angle1", "angle2", "angle3"]));
 ```
 
 The retrieved string values are converted to numbers and stored in a numeric array.

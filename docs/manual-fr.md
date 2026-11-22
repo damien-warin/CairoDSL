@@ -937,22 +937,24 @@ caractères et nombres.
 
 ### Conversion d'une chaîne en nombre
 
-*valeur = strtod("12.3");*
+*valeur = todouble("12.3");*
 
-La fonction *strtod()* utilise directement la fonction standard C du
-même nom.
+La fonction *todouble()* utilise directement la fonction standard C strtod.
 
 Elle convertit le début de la chaîne en nombre flottant (*double*).
 
-Si la chaîne ne contient pas de représentation numérique valide, strtod
+Si la chaîne ne contient pas de représentation numérique valide, todouble
 donne 0.
 
 ### Conversion d'un nombre en chaîne
 
-*texte = dtostr(12.3);*
+*texte = tostring(12.3);*
+*texte = tostring(12.3, 4);*
 
-La fonction *dtostr()* convertit un nombre flottant en chaîne de
+La fonction *tostring()* convertit un nombre flottant en chaîne de
 caractères en utilisant le format *%g*.
+
+Le second paramètre optionnel indique le nombre de décimals.
 
 Ce format adapte automatiquement la représentation du nombre, en
 choisissant une écriture décimale ou scientifique selon sa valeur.
@@ -960,7 +962,7 @@ choisissant une écriture décimale ou scientifique selon sa valeur.
 Ces deux fonctions peuvent prendre un tableau de leur type d’entrée et
 retournent alors un tableau de leur type de sortie.
 
-valeurs=strtod(*"12.3", "21", "42");//Valeurs contient \[12.3, 21, 42\]*
+valeurs=todouble(*"12.3", "21", "42");//Valeurs contient \[12.3, 21, 42\]*
 
 # Chapitre 9 : Variables, tableaux et chaînes de caractères
 
@@ -1336,11 +1338,11 @@ variable inexistante suffit à provoquer une erreur.
 
 ### Exemple : injection de paramètres externes
 
-La combinaison de *getenv()* et de *strtod()* permet de transmettre
+La combinaison de *getenv()* et de *todouble()* permet de transmettre
 facilement des paramètres numériques au programme depuis l'environnement
 d'exécution.
 
-*angles = strtod(getenv(\["angle1", "angle2", "angle3"\]));*
+*angles = todouble(getenv(\["angle1", "angle2", "angle3"\]));*
 
 Les valeurs récupérées sous forme de chaînes sont converties en nombres
 et stockées dans un tableau numérique.
