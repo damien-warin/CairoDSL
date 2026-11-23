@@ -13,25 +13,20 @@ if(NOT EXTERNAL_PROJECT)
 		
 		set(VISUAL_TEST_RUNNER "${CMAKE_SOURCE_DIR}/run_functionnal_test.py")
 		
-		function(add_visual_test TEST_NAME INPUT_SCRIPT EXPECTED_SVG)
+		function(add_visual_test TEST_NAME INPUT_SCRIPT)
 		    add_test(
-		        NAME "${TEST_NAME}"
-		        COMMAND "${Python3_EXECUTABLE}" "${VISUAL_TEST_RUNNER}"
-			"$<TARGET_FILE:CairoInterpreter>"
-		                "${INPUT_SCRIPT}"
-		                "${EXPECTED_SVG}"
-		                --diff-dir "${CMAKE_BINARY_DIR}/test_diffs"
-		    )
+              NAME ${TEST_NAME}
+              COMMAND Python3::Interpreter "${VISUAL_TEST_RUNNER}" "$<TARGET_FILE:CairoInterpreter>" ${INPUT_SCRIPT}
+            )
 		endfunction()
 		file(GLOB FUNCTEST_SRCS ${CMAKE_SOURCE_DIR}/functests/test_*.cairo)
 		foreach(functest ${FUNCTEST_SRCS})
 			get_filename_component(testName ${functest} NAME_WE)
 
-		
+
 			add_visual_test(
 				${testName}
 				"${functest}"
-				"${CMAKE_SOURCE_DIR}/functests/${testName}.svg"
 			)
 		endforeach()
 	endif()

@@ -360,7 +360,6 @@ void OpMessage_set_params(OpMessage *self, SourcePos *pos, String *filename, OpR
 
 void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 {
-#ifndef QTGUI
 	String_append_printf(s, "<msg><pos><filename>%s</filename><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%s</running-state><text>%s</text></msg>",
 								String_get_char_string(&self->filename),
 								self->pos.first_line,
@@ -369,16 +368,6 @@ void OpMessage_append_to_string_xml(OpMessage *self, String *s)
 								self->pos.last_column,
 								_Op_get_running_state_string(self->state),
 								String_get_char_string(&self->msg));
-#else
-	String_append_printf(s, "<msg><pos><filename>%s</filename><first_line>%d</first_line><first_column>%d</first_column><last_line>%d</last_line><last_column>%d</last_column></pos><running-state>%d</running-state><text>%s</text></msg>",
-								String_get_char_string(&self->filename),
-								self->pos.first_line,
-								self->pos.first_column,
-								self->pos.last_line,
-								self->pos.last_column,
-								self->state,
-								String_get_char_string(&self->msg));
-#endif
 }
 
 void OpMessage_free(OpMessage *self)
@@ -858,12 +847,12 @@ int Op_prerun(Op *self, OpContext *ctx)
 	}
 	String m;
 	String_init(&m);
-	String_append_printf(&m, "Prerunning Op %p", self);
+	String_append_printf(&m, "Prerunning Op %s", self->isa->name);
 	OpContext_set_running_state(ctx, self, PreRun, String_get_char_string(&m));
 
 	ret = Op_execute(self, ctx);
 	String_empty(&m);
-	String_append_printf(&m, "Prerunning completed Op %p return %d", self, ret);
+	String_append_printf(&m, "Prerunning completed Op %s return %d", self->isa->name, ret);
 	OpContext_set_running_state(ctx, self, Ready, String_get_char_string(&m));
 	String_finalize(&m);
 	return ret;
@@ -880,16 +869,16 @@ int Op_launch(Op *self, OpContext *ctx)
 	}
 	String m;
 	String_init(&m);
-	String_append_printf(&m, "Launching Op %p", self);
+	String_append_printf(&m, "Launching Op %s", self->isa->name);
 	OpContext_set_running_state(ctx, self, Run, String_get_char_string(&m));
 
 	ret = Op_execute(self, ctx);
 
 	String_empty(&m);
 	if(ret == 0)
-		String_append_printf(&m, "Execution succesfully completed, Op %p return %d", self, ret);
+		String_append_printf(&m, "Execution succesfully completed, Op %s return %d", self->isa->name, ret);
 	else
-		String_append_printf(&m, "Execution completed with an error, Op %p return %d", self, ret);
+		String_append_printf(&m, "Execution completed with an error, Op %s return %d", self->isa->name, ret);
 	OpContext_set_running_state(ctx, self, Finished, String_get_char_string(&m));
 	String_finalize(&m);
 	return ret;
@@ -2400,7 +2389,7 @@ int Op2_execute(Op2 *self, OpContext *ctx)
 			{
 				String m;
 				String_init(&m);
-				String_append_printf(&m, "Error '%s' %p during compute", ((Op*)self)->isa->name, self);
+				String_append_printf(&m, "Error '%s' during compute", ((Op*)self)->isa->name);
 				if(String_get_length(&err_msg) > 0)
 					String_append_printf(&m, " : '%s'", String_get_char_string(&err_msg));
 				OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&m));
@@ -2412,7 +2401,7 @@ int Op2_execute(Op2 *self, OpContext *ctx)
 		{
 			String m;
 			String_init(&m);
-			String_append_printf(&m, "Error '%s' %p operandes types", ((Op*)self)->isa->name, self);
+			String_append_printf(&m, "Error '%s' operandes types", ((Op*)self)->isa->name);
 			OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&m));
 			String_finalize(&m);
 		}
@@ -2852,7 +2841,7 @@ int Op1_execute(Op1 *self, OpContext *ctx)
 			{
 				String m;
 				String_init(&m);
-				String_append_printf(&m, "Error '%s' %p during compute", ((Op*)self)->isa->name, self);
+				String_append_printf(&m, "Error '%s' during compute", ((Op*)self)->isa->name);
 				if(String_get_length(&err_msg) > 0)
 					String_append_printf(&m, " : '%s'", String_get_char_string(&err_msg));
 				OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&m));
@@ -2864,7 +2853,7 @@ int Op1_execute(Op1 *self, OpContext *ctx)
 		{
 			String m;
 			String_init(&m);
-			String_append_printf(&m, "Error '%s' %p operande type", ((Op*)self)->isa->name, self);
+			String_append_printf(&m, "Error '%s' operande type", ((Op*)self)->isa->name);
 			OpContext_set_running_state(ctx, (Op*)self, Error, String_get_char_string(&m));
 			String_finalize(&m);
 		}

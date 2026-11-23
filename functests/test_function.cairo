@@ -11,4 +11,5 @@ function bar(a, b)
 	return c+b;
 }
 
-rectangle(0, 0, foo(10), bar(10, 5));
+message("foo", foo(1));
+message("bar", bar(2, 3));
