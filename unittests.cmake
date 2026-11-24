@@ -24,6 +24,14 @@ if(NOT EXTERNAL_PROJECT)
                 #link to Boost libraries AND your targets and dependencies
                 target_link_libraries(${testName} PRIVATE ${testLink})
                 target_link_libraries(${testName} PRIVATE LibXml2::LibXml2)
+				target_link_libraries(${testName} PRIVATE LinkedLists)
+				target_link_libraries(${testName} PRIVATE Strings)
+				
+				target_include_directories(${testName} PRIVATE ${linkedlists_SOURCE_DIR})
+				target_include_directories(${testName} PRIVATE ${strings_SOURCE_DIR})
+				
+				find_package(Cairo)
+				target_link_libraries(${testName} PRIVATE Cairo::Cairo)
 
                 #I like to move testing binaries into a testBin directory
                 set_target_properties(${testName} PROPERTIES 
