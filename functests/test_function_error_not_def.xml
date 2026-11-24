@@ -1,0 +1,1 @@
+<xml><msgs><msg><pos><filename></filename><first_line>1</first_line><first_column>8</first_column><last_line>1</last_line><last_column>8</last_column></pos><running-state>ParseError</running-state><text>Function 'foo' not found</text></msg></msgs></xml>
