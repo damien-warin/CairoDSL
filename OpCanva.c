@@ -2913,6 +2913,9 @@ int OpCanvaBloc_execute(OpCanvaBloc *self, OpCanvaContext *canvactx)
 	if(state == PreRun)//PreRun ? Musn't play Canva part !
 		return OpBloc_execute(&self->super, (OpContext*)ctx);
 
+	//Auto draw before save if math exist, to avoid drawing actual path with parameters set up inside this block.
+	if(self->auto_draw == true)
+		CanvaCtx_auto_draw(canvactx->Canva);
 	log_trace("Canva %p Save\n", canvactx->Canva);
 	CanvaCtx_save(canvactx->Canva);
 	ret = OpBloc_execute(&self->super, (OpContext*)ctx);
@@ -3826,14 +3829,152 @@ Op *OpPaint_new(void)
 }
 
 
+OpIsa OpSetLineJoin_isa = {
+		.name="SetLineJoin",
+		.size=sizeof(OpSetLineJoin),
+		.init = (void(*)(Op*))OpSetLineJoin_init,
+		.terminate = (void(*)(Op*))OpSetLineJoin_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))OpSetLineJoin_fix_operandes,
+		.execute = (int(*)(Op*, OpContext*))OpSetLineJoin_execute,
+		.check_args = (int(*)(Op*, OpContext*))OpSetLineJoin_set_check_args,
+};
+
+void OpSetLineJoin_init(OpSetLineJoin *self)
+{
+	Op_init(&self->super);
+	self->join = NULL;
+}
+
+void OpSetLineJoin_terminate(OpSetLineJoin *self)
+{
+	Op_terminate(&self->super);
+	_OpSetLineJoin_set_join(self, NULL);
+}
+
+void _OpSetLineJoin_set_join(OpSetLineJoin *self, Op *join)
+{
+	OP_SET_OPERANDE(self, join, join);
+}
+
+#define OPSETLINEJOIN_JOIN 0
+
+void OpSetLineJoin_set_join(OpSetLineJoin *self, Op *join)
+{
+	OP_ADD_OPERANDE(self, join, OPSETLINEJOIN_JOIN);
+}
+
+int OpSetLineJoin_fix_operandes(OpSetLineJoin *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->super.nb_ops >= 1)
+	{
+		ret = 0;
+		_OpSetLineJoin_set_join(self, self->super.operandes[OPSETLINEJOIN_JOIN]);
+	}
+	return ret;
+}
+
+int OpSetLineJoin_set_check_args(OpSetLineJoin *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->join != NULL)
+		ret = 0;
+	return ret;
+}
+
+int OpSetLineJoin_execute(OpSetLineJoin *self, OpCanvaContext *ctx)
+{
+	int ret;
+	const char *join;
+	ret = Op_execute_get_string(self->join, (Op*)self, (OpContext*)ctx, &join);
+	if(ret == 0)
+		CanvaCtx_set_line_join(ctx->Canva, join);
+	return 0;
+}
+
+Op *OpSetLineJoin_new(void)
+{
+	return Op_new(&OpSetLineJoin_isa);
+}
+
+
+OpIsa OpSetLineCap_isa = {
+		.name="SetLineCap",
+		.size=sizeof(OpSetLineCap),
+		.init = (void(*)(Op*))OpSetLineCap_init,
+		.terminate = (void(*)(Op*))OpSetLineCap_terminate,
+		.fix_operandes = (int(*)(Op*, OpContext*))OpSetLineCap_fix_operandes,
+		.execute = (int(*)(Op*, OpContext*))OpSetLineCap_execute,
+		.check_args = (int(*)(Op*, OpContext*))OpSetLineCap_set_check_args,
+};
+
+void OpSetLineCap_init(OpSetLineCap *self)
+{
+	Op_init(&self->super);
+	self->cap = NULL;
+}
+
+void OpSetLineCap_terminate(OpSetLineCap *self)
+{
+	Op_terminate(&self->super);
+	_OpSetLineCap_set_cap(self, NULL);
+}
+
+void _OpSetLineCap_set_cap(OpSetLineCap *self, Op *cap)
+{
+	OP_SET_OPERANDE(self, cap, cap);
+}
+
+#define OPSETLINECAP_CAP 0
+
+void OpSetLineCap_set_cap(OpSetLineCap *self, Op *cap)
+{
+	OP_ADD_OPERANDE(self, cap, OPSETLINECAP_CAP);
+}
+
+int OpSetLineCap_fix_operandes(OpSetLineCap *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->super.nb_ops >= 1)
+	{
+		ret = 0;
+		_OpSetLineCap_set_cap(self, self->super.operandes[OPSETLINECAP_CAP]);
+	}
+	return ret;
+}
+
+int OpSetLineCap_set_check_args(OpSetLineCap *self, OpContext *ctx)
+{
+	int ret = -1;
+	if(self->cap != NULL)
+		ret = 0;
+	return ret;
+}
+
+int OpSetLineCap_execute(OpSetLineCap *self, OpCanvaContext *ctx)
+{
+	int ret;
+	const char *cap;
+	ret = Op_execute_get_string(self->cap, (Op*)self, (OpContext*)ctx, &cap);
+	if(ret == 0)
+		CanvaCtx_set_line_cap(ctx->Canva, cap);
+	return 0;
+}
+
+Op *OpSetLineCap_new(void)
+{
+	return Op_new(&OpSetLineCap_isa);
+}
+
+
 OpIsa OpFontSelector_isa = {
 		.name="FontSelector",
 		.size=sizeof(OpFontSelector),
 		.init = (void(*)(Op*))OpFontSelector_init,
 		.terminate = (void(*)(Op*))OpFontSelector_terminate,
-		.fix_operandes = (int(*)(Op*, OpContext*))NULL,//Pas d'op child
+		.fix_operandes = (int(*)(Op*, OpContext*))OpFontSelector_fix_operandes,
 		.execute = (int(*)(Op*, OpContext*))OpFontSelector_execute,
-		.check_args = NULL,
+		.check_args = (int(*)(Op*, OpContext*))OpFontSelector_check_args,
 };
 
 void OpFontSelector_init(OpFontSelector *self)
@@ -3847,45 +3988,90 @@ void OpFontSelector_init(OpFontSelector *self)
 void OpFontSelector_terminate(OpFontSelector *self)
 {
 	Op_terminate(&self->super);
-	OpFontSelector_set_font_name(self, NULL);
-	OpFontSelector_set_font_slant(self, NULL);
-	OpFontSelector_set_font_weight(self, NULL);
+	_OpFontSelector_set_font_name(self, NULL);
+	_OpFontSelector_set_font_slant(self, NULL);
+	_OpFontSelector_set_font_weight(self, NULL);
 }
 
-void OpFontSelector_set_font_name(OpFontSelector *self, const char *name)
+void _OpFontSelector_set_font_name(OpFontSelector *self, Op *name)
 {
-	if(self->font != NULL)
-		free(self->font);
-	if(name != NULL)
-		self->font = strdup(name);
-	else
-		self->font = NULL;
+	OP_SET_OPERANDE(self, font, name);
 }
 
-void OpFontSelector_set_font_slant(OpFontSelector *self, const char *slant)
+void _OpFontSelector_set_font_slant(OpFontSelector *self, Op *slant)
 {
-	if(self->slant != NULL)
-		free(self->slant);
-	if(slant!= NULL)
-		self->slant= strdup(slant);
-	else
-		self->slant = NULL;
+	OP_SET_OPERANDE(self, slant, slant);
 }
 
-void OpFontSelector_set_font_weight(OpFontSelector *self, const char *weight)
+void _OpFontSelector_set_font_weight(OpFontSelector *self, Op *weight)
 {
-	if(self->weight != NULL)
-		free(self->weight);
-	if(weight != NULL)
-		self->weight = strdup(weight);
-	else
-		self->weight = NULL;
+	OP_SET_OPERANDE(self, weight, weight);
+}
+
+#define OPFONTSEL_NAME 0
+#define OPFONTSEL_SLANT 1
+#define OPFONTSEL_WEIGHT 2
+
+void OpFontSelector_set_font_name(OpFontSelector *self, Op *name)
+{
+	OP_ADD_OPERANDE(self, name, OPFONTSEL_NAME);
+}
+
+void OpFontSelector_set_font_slant(OpFontSelector *self, Op *slant)
+{
+	OP_ADD_OPERANDE(self, slant, OPFONTSEL_SLANT);
+}
+
+void OpFontSelector_set_font_weight(OpFontSelector *self, Op *weight)
+{
+	OP_ADD_OPERANDE(self, weight, OPFONTSEL_WEIGHT);
+}
+
+int OpFontSelector_check_args(OpFontSelector *self, OpCanvaContext *ctx)
+{
+	if(self->font == NULL || self->weight == NULL || self->slant == NULL)
+		return -1;
+	return 0;
+}
+
+int OpFontSelector_fix_operandes(OpFontSelector *self, OpCanvaContext *ctx)
+{
+	int ret = -1;
+	if(self->super.nb_ops >= 3)
+	{
+		ret = 0;
+		_OpFontSelector_set_font_weight(self, self->super.operandes[OPFONTSEL_WEIGHT]);
+		_OpFontSelector_set_font_slant(self, self->super.operandes[OPFONTSEL_SLANT]);
+		_OpFontSelector_set_font_name(self, self->super.operandes[OPFONTSEL_NAME]);
+	}
+	return ret;
 }
 
 int OpFontSelector_execute(OpFontSelector *self, OpCanvaContext *ctx)
 {
-	CanvaCtx_set_font(ctx->Canva, self->font, self->slant, self->weight);
-	return 0;
+	int ret;
+	const char *f, *s, *w;
+	ret = Op_execute_get_string(self->font, (Op*)self, (OpContext*)ctx, &f);
+	if(ret == 0)
+	{
+		char *font = strdup(f);
+		ret = Op_execute_get_string(self->slant, (Op*)self, (OpContext*)ctx, &s);
+		if(ret == 0)
+		{
+			char *slant = strdup(s);
+			ret = Op_execute_get_string(self->weight, (Op*)self, (OpContext*)ctx, &w);
+			if(ret == 0)
+			{
+				char *weight = strdup(w);
+				CanvaCtx_set_font(ctx->Canva, font, slant, weight);
+				free(weight);
+			}
+			free(slant);
+		}
+		free(font);
+	}
+
+	return ret;
 }
 
 Op *OpFontSelector_new(void)

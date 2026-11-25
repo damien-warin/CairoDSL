@@ -643,9 +643,15 @@ int OpParseImport_import_svg(OpParseImport *self, OpImport *import, OpContext *c
 
 	/* Set Font to sans-serif size 10 by default for SVG import, as normal SVG. */
 	Op *sf = OpFontSelector_new();
-	OpFontSelector_set_font_name((OpFontSelector*)sf, "sans-serif");
-	OpFontSelector_set_font_slant((OpFontSelector*)sf, "normal");
-	OpFontSelector_set_font_weight((OpFontSelector*)sf, "normal");
+	gv = OpGetValue_new();
+	OpGetValue_set_value_string((OpGetValue*)gv, "sans-serif");
+	OpFontSelector_set_font_name((OpFontSelector*)sf, gv);
+	gv = OpGetValue_new();
+	OpGetValue_set_value_string((OpGetValue*)gv, "normal");
+	OpFontSelector_set_font_slant((OpFontSelector*)sf, gv);
+	gv = OpGetValue_new();
+	OpGetValue_set_value_string((OpGetValue*)gv, "normal");
+	OpFontSelector_set_font_weight((OpFontSelector*)sf, gv);
 	OpBloc_append_Op(CanvaBloc, sf);
 
 	Op *fs = OpSetFontSize_new();
@@ -1083,10 +1089,16 @@ void OpParseImport_import_parser_text(OpParseImport *self, xmlTextReaderPtr read
 	{
 		if(strcasecmp((char*)attr, "bold") == 0)
 		{
-			Op *fs = OpFontSelector_new();
-			OpFontSelector_set_font_weight((OpFontSelector*)fs, (char*)attr);
-			OpFontSelector_set_font_slant((OpFontSelector*)fs, "normal");
-			OpFontSelector_set_font_name((OpFontSelector*)fs, "sans-serif");
+			Op *fs = OpFontSelector_new(), *gv;
+			gv = OpGetValue_new();
+			OpGetValue_set_value_string((OpGetValue*)gv, "sans-serif");
+			OpFontSelector_set_font_name((OpFontSelector*)fs, gv);
+			gv = OpGetValue_new();
+			OpGetValue_set_value_string((OpGetValue*)gv, "normal");
+			OpFontSelector_set_font_slant((OpFontSelector*)fs, gv);
+			gv = OpGetValue_new();
+			OpGetValue_set_value_string((OpGetValue*)gv, (char*)attr);
+			OpFontSelector_set_font_weight((OpFontSelector*)fs, gv);
 			OpBloc_append_Op(ret, fs);
 		}
 		xmlFree(attr);

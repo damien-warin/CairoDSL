@@ -589,6 +589,45 @@ void CanvaCtx_auto_draw(CanvaCtx *self)
 	}
 }
 
+
+void CanvaCtx_set_line_cap(CanvaCtx *self, const char *cap)
+{
+	/*
+	typedef enum _cairo_line_cap {
+	    CAIRO_LINE_CAP_BUTT,
+	    CAIRO_LINE_CAP_ROUND,
+	    CAIRO_LINE_CAP_SQUARE
+	} cairo_line_cap_t;
+	*/
+	cairo_line_cap_t c = CAIRO_LINE_CAP_BUTT;
+	if(strcasecmp(cap, "round") == 0)
+		c = CAIRO_LINE_CAP_ROUND;
+	else if(strcasecmp(cap, "square") == 0)
+		c = CAIRO_LINE_CAP_SQUARE;
+
+	log_trace("Cairo %p set line cap '%s' %d\n", self->cr, cap, c);
+	cairo_set_line_cap(self->cr, c);
+}
+
+void CanvaCtx_set_line_join(CanvaCtx *self, const char *join)
+{
+	/*
+	typedef enum _cairo_line_join {
+		CAIRO_LINE_JOIN_MITER,
+		CAIRO_LINE_JOIN_ROUND,
+		CAIRO_LINE_JOIN_BEVEL
+	} cairo_line_join_t;
+	*/
+	cairo_line_join_t j = CAIRO_LINE_JOIN_MITER;
+	if(strcasecmp(join, "round") == 0)
+		j = CAIRO_LINE_JOIN_ROUND;
+	else if(strcasecmp(join, "bevel") == 0)
+		j = CAIRO_LINE_JOIN_BEVEL;
+
+	log_trace("Cairo %p set line join '%s' %d\n", self->cr, join, j);
+	cairo_set_line_join(self->cr, j);
+}
+
 void CanvaCtx_set_line_width(CanvaCtx *self, double w)
 {
 	log_trace("Cairo %p set line width %f\n", self->cr, w);

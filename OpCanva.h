@@ -243,12 +243,25 @@ typedef struct op_use_mask
 }OpUseMask;
 
 
+typedef struct op_set_line_join
+{
+	Op super;
+	Op *join;
+}OpSetLineJoin;
+
+typedef struct op_set_line_cap
+{
+	Op super;
+	Op *cap;
+}OpSetLineCap;
+
+
 typedef struct op_font_selector
 {
 	Op super;
-	char *font;
-	char *slant;
-	char *weight;
+	Op *font;
+	Op *slant;
+	Op *weight;
 }OpFontSelector;
 
 typedef struct op_set_font_size

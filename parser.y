@@ -71,6 +71,8 @@ Op *root;
 %token COLOR
 %token SETLINEWIDTH
 %token GETLINEWIDTH
+%token SETLINECAP
+%token SETLINEJOIN
 %token SETDASH
 %token GETDASH
 %token GETDASHOFFSET
@@ -1345,7 +1347,46 @@ statement:
 		OpSetLineWidth_set_width(opl, $3);
         OpBloc_append_Op(op, (Op*)opl);
         OpBloc_append_Op(op, $5);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
   		Op_set_source_pos((Op*)opl, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
+      }
+		| SETLINECAP '(' expression ')' ';'
+      {
+      	OpSetLineCap *op = (OpSetLineCap*)OpSetLineCap_new();
+      	$$ = (Op*)op;
+		OpSetLineCap_set_cap(op, $3);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+    	| SETLINECAP '(' expression ')' block
+      {
+      	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+      	$$ = (Op*)op;
+      	OpSetLineCap *opc = (OpSetLineCap*)OpSetLineCap_new();
+		OpSetLineCap_set_cap(opc, $3);
+        OpBloc_append_Op(op, (Op*)opc);
+        OpBloc_append_Op(op, $5);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
+  		Op_set_source_pos((Op*)opc, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+  		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
+      }
+		| SETLINEJOIN '(' expression ')' ';'
+      {
+      	OpSetLineJoin *op = (OpSetLineJoin*)OpSetLineJoin_new();
+      	$$ = (Op*)op;
+		OpSetLineJoin_set_join(op, $3);
+  		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
+      }
+    	| SETLINEJOIN '(' expression ')' block
+      {
+      	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
+      	$$ = (Op*)op;
+      	OpSetLineJoin *opj = (OpSetLineJoin*)OpSetLineJoin_new();
+		OpSetLineJoin_set_join(opj, $3);
+        OpBloc_append_Op(op, (Op*)opj);
+        OpBloc_append_Op(op, $5);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
+  		Op_set_source_pos((Op*)opj, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
   		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
       }
 		| SETDASH '(' expression ')' ';'
@@ -1371,6 +1412,7 @@ statement:
         OpBloc_append_Op(op, (Op*)d);
         OpBloc_append_Op(op, $5);
 		OpSetDashArray_set_dashes(d, $3);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
   		Op_set_source_pos((Op*)d, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
   		Op_set_source_pos($$, @5.first_line, @5.first_column, @5.last_line, @5.last_column);
       }
@@ -1611,10 +1653,11 @@ statement:
       	$$ = (Op*)op;
         OpBloc_append_Op(op, (Op*)fs);
         OpBloc_append_Op(op, $5);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
   		Op_set_source_pos((Op*)fs, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
 	  }
-      	| FONT '(' TEXTCONTENT ',' TEXTCONTENT ',' TEXTCONTENT ')' ';'
+      	| FONT '(' expression ',' expression ',' expression ')' ';'
       {
 		OpFontSelector *op = (OpFontSelector*)OpFontSelector_new();
       	$$ = (Op*)op;
@@ -1622,11 +1665,8 @@ statement:
 		OpFontSelector_set_font_slant(op, $5);
 		OpFontSelector_set_font_weight(op, $7);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		free($3);
-  		free($5);
-  		free($7);
 	  }
-      	| FONT '(' TEXTCONTENT ',' TEXTCONTENT ',' TEXTCONTENT ')' block
+      	| FONT '(' expression ',' expression ',' expression ')' block
       {
     	OpBloc *op = (OpBloc*)OpCanvaBloc_new();
 		OpFontSelector *fs = (OpFontSelector*)OpFontSelector_new();
@@ -1634,11 +1674,9 @@ statement:
 		OpFontSelector_set_font_name(fs, $3);
 		OpFontSelector_set_font_slant(fs, $5);
 		OpFontSelector_set_font_weight(fs, $7);
+        OpCanvaBloc_set_auto_draw((OpCanvaBloc*)op);
   		Op_set_source_pos((Op*)fs, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
   		Op_set_source_pos($$, @1.first_line, @1.first_column, @1.last_line, @1.last_column);
-  		free($3);
-  		free($5);
-  		free($7);
         OpBloc_append_Op(op, (Op*)fs);
         OpBloc_append_Op(op, $9);
 	  }

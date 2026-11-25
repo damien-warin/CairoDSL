@@ -48,6 +48,8 @@ void CanvaCtx_save(CanvaCtx *self);
 void CanvaCtx_restore(CanvaCtx *self);
 void CanvaCtx_set_default_draw_mode(CanvaCtx *self, CanvaCtxAutoDrawMode m);
 void CanvaCtx_auto_draw(CanvaCtx *self);
+void CanvaCtx_set_line_cap(CanvaCtx *self, const char *cap);
+void CanvaCtx_set_line_join(CanvaCtx *self, const char *join);
 void CanvaCtx_set_line_width(CanvaCtx *self, double w);
 double CanvaCtx_get_line_width(CanvaCtx *self);
 void CanvaCtx_set_dash_array(CanvaCtx *self, const double *v, int number, double offset);

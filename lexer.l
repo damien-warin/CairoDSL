@@ -67,6 +67,8 @@ int yycolumn = 1;
 (?i:"getrgb")			{ return RGBCOLOR; }
 (?i:"setlinewidth")	{ return SETLINEWIDTH; }
 (?i:"getlinewidth")	{ return GETLINEWIDTH; }
+(?i:"setlinecap")	{ return SETLINECAP; }
+(?i:"setlinejoin")	{ return SETLINEJOIN; }
 (?i:"setdash")		{ return SETDASH; }
 (?i:"getdash")		{ return GETDASH; }
 (?i:"getdashoffset")	{ return GETDASHOFFSET; }
