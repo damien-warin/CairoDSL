@@ -976,7 +976,7 @@ int Op_execute_get_string(Op *self, Op *sender, OpContext *ctx, const char **s)
 		t = OpVariable_get_type(c);
 		if(t == STRING)
 			*s = OpVariable_get_string(c);
-		else if(t == DOUBLES)
+		else if(t == STRINGS)
 		{
 			if(OpVariable_get_number_elements(c) > 0)
 				*s = OpVariable_get_strings(c)[0];
