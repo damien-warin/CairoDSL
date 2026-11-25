@@ -235,6 +235,35 @@ int get_string_in_double(void)
     return ret;
 }
 
+int get_string_in_NONE(void)
+{
+    int ret = 0;
+    const char *s;
+    OpProgram p;
+    OpContext c;
+    String err;
+
+    OpProgram_init(&p);
+    OpContext_init(&c);
+    OpProgram_set_context(&p, &c);
+    Op *gv = OpGetValue_new();
+
+    Op_fix_operandes(gv, &c);
+
+    OpContext_set_running_state(&c, gv, Run, "");
+
+    if(Op_execute_get_string(gv, gv, &c, &s) != -1)//Pas ultra propre sender, mais c'est juste pour le nom.
+    {
+    	ret = -1;
+    	fprintf(stderr, "get string width DOUBLE should not work\n");
+    }
+
+    Op_free(gv);
+    OpContext_terminate(&c);
+    OpProgram_terminate(&p);
+    return ret;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -244,6 +273,7 @@ int main(int argc, char **argv)
 	if(ret == 0)ret = get_string_in_string();
 	if(ret == 0)ret = get_string_in_array_of_strings();
 	if(ret == 0)ret = get_string_in_array_of_strings_empty();
+	if(ret == 0)ret = get_string_in_NONE();
 
     if(ret == 0)
         exit(EXIT_SUCCESS);

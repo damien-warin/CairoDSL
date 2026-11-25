@@ -10,6 +10,35 @@
 #define S1 "foo"
 
 
+int get_double_in_NONE(void)
+{
+    int ret = 0;
+    double d;
+    OpProgram p;
+    OpContext c;
+    String err;
+
+    OpProgram_init(&p);
+    OpContext_init(&c);
+    OpProgram_set_context(&p, &c);
+    Op *gv = OpGetValue_new();
+
+
+    Op_fix_operandes(gv, &c);
+
+    OpContext_set_running_state(&c, gv, Run, "");
+
+    if(Op_execute_get_double(gv, gv, &c, &d) != -1)//Pas ultra propre sender, mais c'est juste pour le nom.
+    {
+    	ret = -1;
+    	fprintf(stderr, "get double width STRING should give error\n");
+    }
+
+    Op_free(gv);
+    OpContext_terminate(&c);
+    OpProgram_terminate(&p);
+    return ret;
+}
 
 int get_double_in_string(void)
 {
@@ -243,6 +272,7 @@ int main(int argc, char **argv)
 	if(ret == 0)ret = get_double_in_string();
 	if(ret == 0)ret = get_double_in_array_of_strings();
 	if(ret == 0)ret = get_double_in_array_of_strings_empty();
+	if(ret == 0)ret = get_double_in_NONE();
 
     if(ret == 0)
         exit(EXIT_SUCCESS);
