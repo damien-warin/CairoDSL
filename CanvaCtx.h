@@ -85,6 +85,13 @@ typedef struct {
 
 #include <CanvaCtx.proto.h>
 
+#ifndef NOSDL
+
+void CanvaCtx_set_texture(CanvaCtx *, SDL_Texture *);
+void CanvaCtx_update_display(CanvaCtx *);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

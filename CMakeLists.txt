@@ -69,7 +69,6 @@ add_executable(CairoInterpreter
 )
 
 set(testLink CairoInterpreterLib)
-include(unittests.cmake)
 
 #target_link_libraries(CairoInterpreter PRIVATE fl)
 
@@ -192,6 +191,7 @@ target_link_libraries(CairoInterpreter PRIVATE SDL2::SDL2)
 endif()
 
 include(functionnaltests.cmake)
+include(unittests.cmake)
 
 if( QTGUI)
 
@@ -253,9 +253,59 @@ if( QTGUI)
 	target_link_libraries(CairoDSLEditor PRIVATE LinkedLists)
 	target_link_libraries(CairoDSLEditor PRIVATE Strings)
 	target_sources(CairoDSLEditor PRIVATE ${logs_SOURCE_DIR}/src/log.c)
+	
+	install(TARGETS CairoDSLEditor
+  	RUNTIME DESTINATION bin
+  	COMPONENT CairoDSLEditor
+	)
 endif()
 
 include_directories(./)
 
+install(TARGETS CairoInterpreter
+  	RUNTIME DESTINATION bin
+  	COMPONENT CairoInterpreter
+)
+
+
+set(CPACK_GENERATOR "DEB")
+
+# Indispensable pour obtenir 1 fichier .deb par composant (sinon 1 seul .deb contient tout)
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+
+if( QTGUI)
+# Liste des composants à empaqueter
+set(CPACK_COMPONENTS_ALL CairoInterpreter CairoDSLEditor)
+else()
+set(CPACK_COMPONENTS_ALL CairoInterpreter)
+endif()
+
+# Détection automatique des dépendances APT pour chaque .deb
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Damien Warin <damien.warin@gmail.com>")
+
+# --- Paquet 1 : app-un ---
+set(CPACK_DEBIAN_COMPONENT_COMP_UN_PACKAGE_NAME "CairoInterpreter")
+set(CPACK_DEBIAN_COMPONENT_COMP_UN_DESCRIPTION "Interpreter version of CairoDSL")
+# Optionnel : dépendances supplémentaires spécifiques au paquet 1
+# set(CPACK_DEBIAN_COMPONENT_COMP_UN_DEPENDS "curl")
+
+if( QTGUI)
+	# --- Paquet 2 : app-deux ---
+	set(CPACK_DEBIAN_COMPONENT_COMP_DEUX_PACKAGE_NAME "CairoDSLEditor")
+	set(CPACK_DEBIAN_COMPONENT_COMP_DEUX_DESCRIPTION "Qt GUI Version of CairoDSL")
+	# Optionnel : dépendances supplémentaires spécifiques au paquet 2
+	# set(CPACK_DEBIAN_COMPONENT_COMP_DEUX_DEPENDS "jq")
+
+endif()
+
+set(CPACK_PACKAGE_VERSION_MAJOR "0")
+set(CPACK_PACKAGE_VERSION_MINOR "9")
+set(CPACK_PACKAGE_VERSION_PATCH "0")
+
+# Optionnel : révision du paquet Debian (ex. 1 pour le premier empaquetage de cette version)
+set(CPACK_DEBIAN_PACKAGE_RELEASE "1")
+
+include(CPack)
 
 #to add ggdb3 : -DCMAKE_RELEASE_MODE=Debug
