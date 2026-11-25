@@ -109,40 +109,36 @@ void OpVariables_empty(OpVariable *self)
 
 void OpVariable_copy(OpVariable *self, OpVariable *other)
 {
-	if(self->type == NONE)
-		OpVariable_set_type(self, other->type);
-	if(self->type != other->type)
-	{
-		OpVariables_empty(self);
-		OpVariable_set_type(self, other->type);
-	}
+	OpVariables_empty(self);
+	OpVariable_set_type(self, other->type);
 	switch(self->type)
 	{
 	case NONE :		break;
 	case DOUBLE :	self->v = other->v;
 					break;
-	case DOUBLES :	if(self->number_of_elements != other->number_of_elements)
+	case DOUBLES :	if(other->number_of_elements > 0)
 					{
 						self->vs = realloc(self->vs, sizeof(double) * other->number_of_elements);
 						self->number_of_elements = other->number_of_elements;
+						memcpy(self->vs, other->vs, sizeof(double) * other->number_of_elements);
 					}
-					memcpy(self->vs, other->vs, sizeof(double) * other->number_of_elements);
 					break;
-	case STRING :	if(self->number_of_elements != other->number_of_elements)
+	case STRING :	if(other->number_of_elements > 0)
 					{
 						self->string = realloc(self->string, sizeof(char) * other->number_of_elements);
 						self->number_of_elements = other->number_of_elements;
+						memcpy(self->string, other->string, sizeof(char) * other->number_of_elements);
 					}
-					memcpy(self->string, other->string, sizeof(char) * other->number_of_elements);
 					break;
-	case STRINGS :
-					OpVariables_empty(self);
-					self->vs = malloc(sizeof(char*) * other->number_of_elements);
-					self->number_of_elements = other->number_of_elements;
-					int cmpt;
-					for(cmpt = 0; cmpt < self->number_of_elements; cmpt++)
+	case STRINGS :	if(other->number_of_elements > 0)
 					{
-						self->strings[cmpt] = strdup(other->strings[cmpt]);
+						self->vs = malloc(sizeof(char*) * other->number_of_elements);
+						self->number_of_elements = other->number_of_elements;
+						int cmpt;
+						for(cmpt = 0; cmpt < self->number_of_elements; cmpt++)
+						{
+							self->strings[cmpt] = strdup(other->strings[cmpt]);
+						}
 					}
 					break;
 	}
