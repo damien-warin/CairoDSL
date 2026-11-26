@@ -2607,6 +2607,7 @@ NewPatternFirstBlock:
     {
         /* Construction classique de Newlinear */
         $$ = OpParser_get_temp_op(p);
+      	OpParser_set_temp_op(p, NULL);
     }
   | {
        	String var_name;
