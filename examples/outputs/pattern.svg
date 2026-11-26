@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
+<defs>
+<radialGradient id="radial-pattern-0" gradientUnits="userSpaceOnUse" cx="300" cy="300" fx="300" fy="300" r="300">
+<stop offset="0.0333333" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.516667" stop-color="rgb(0%, 100%, 0%)" stop-opacity="1"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</radialGradient>
+<linearGradient id="linear-pattern-0" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
+<stop offset="0" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.5" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.498039"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+<linearGradient id="linear-pattern-1" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100" gradientTransform="matrix(0.707107, 0.707107, -0.707107, 0.707107, 150, 49.289322)">
+<stop offset="0" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.5" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.498039"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+<linearGradient id="linear-pattern-2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100" gradientTransform="matrix(0.000000000000000061, 1, -1, 0.000000000000000061, 300, -0.000000000000004159)">
+<stop offset="0" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.5" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.498039"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+<linearGradient id="linear-pattern-3" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100" gradientTransform="matrix(-0.707107, 0.707107, -0.707107, -0.707107, 420.710678, 120)">
+<stop offset="0" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.5" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.498039"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+</defs>
+<rect x="-64" y="-48" width="768" height="576" fill="url(#radial-pattern-0)"/>
+<path fill-rule="nonzero" fill="url(#linear-pattern-0)" d="M 0 0 L 100 0 L 100 100 L 0 100 Z M 0 0 "/>
+<path fill-rule="nonzero" fill="url(#linear-pattern-1)" d="M 150 49.289062 L 220.710938 120 L 150 190.710938 L 79.289062 120 Z M 150 49.289062 "/>
+<path fill-rule="nonzero" fill="url(#linear-pattern-2)" d="M 300 0 L 300 100 L 200 100 L 200 0 Z M 300 0 "/>
+<path fill-rule="nonzero" fill="url(#linear-pattern-3)" d="M 420.710938 120 L 350 190.710938 L 279.289062 120 L 350 49.289062 Z M 420.710938 120 "/>
+</svg>

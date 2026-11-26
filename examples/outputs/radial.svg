@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
+<defs>
+<radialGradient id="radial-pattern-0" gradientUnits="userSpaceOnUse" cx="100" cy="100" fx="100" fy="100" r="150">
+<stop offset="0.333333" stop-color="rgb(0.392157%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.666667" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.32549"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</radialGradient>
+</defs>
+<rect x="-64" y="-48" width="768" height="576" fill="url(#radial-pattern-0)"/>
+</svg>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
+<defs>
+<linearGradient id="linear-pattern-0" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="200">
+<stop offset="0" stop-color="rgb(100%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0" stop-color="rgb(0.392157%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+<linearGradient id="linear-pattern-1" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="200">
+<stop offset="0" stop-color="rgb(0.392157%, 0%, 0%)" stop-opacity="1"/>
+<stop offset="0.5" stop-color="rgb(0%, 100%, 0%)" stop-opacity="0.333333"/>
+<stop offset="1" stop-color="rgb(0%, 0%, 100%)" stop-opacity="1"/>
+</linearGradient>
+</defs>
+<rect x="-64" y="-48" width="768" height="576" fill="url(#linear-pattern-0)"/>
+<rect x="-64" y="-48" width="768" height="576" fill="url(#linear-pattern-1)"/>
+</svg>

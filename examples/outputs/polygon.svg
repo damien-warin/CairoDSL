@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="480" viewBox="0 0 640 480">
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 10 10 L 10 20 L 20 20 L 20 10 Z M 10 10 "/>
+<path fill-rule="nonzero" fill="rgb(100%, 0%, 100%)" fill-opacity="1" d="M 130 100 L 124.269531 117.632812 L 109.269531 128.53125 L 90.730469 128.53125 L 75.730469 117.632812 L 70 100 L 75.730469 82.367188 L 90.730469 71.46875 L 109.269531 71.46875 L 124.269531 82.367188 Z M 130 100 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(100%, 100%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 173.148438 87.65625 L 141.871094 141.011719 L 126.921875 167.070312 L 82.617188 143.539062 L 56.40625 124.53125 L 32.085938 85.082031 L 62.527344 49.910156 L 89.746094 39.714844 L 105.160156 38.214844 L 161.058594 66.941406 L 160.632812 101.105469 Z M 173.148438 87.65625 "/>
+<path fill="none" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" stroke="rgb(0%, 0%, 0%)" stroke-opacity="1" stroke-miterlimit="10" d="M 32.085938 38.214844 L 173.148438 38.214844 L 173.148438 167.070312 L 32.085938 167.070312 Z M 32.085938 38.214844 "/>
+</svg>

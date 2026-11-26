@@ -1,6 +1,6 @@
 #setoutputsize(640,480);
 
-setbgolor(white());
+setbgcolor(white());
 t=[1:10];
 foreach(a in t)
 {
