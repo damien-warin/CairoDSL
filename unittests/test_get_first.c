@@ -38,7 +38,7 @@ int get_first_in_NONE(void)
     if(Op_execute(gf,&c) != -1)
     {
     	ret = -1;
-    	fprintf(stderr, "get first with STRING should not work\n");
+    	fprintf(stderr, "get first with NONE should not work\n");
     }
 
     Op_free(gf);
@@ -124,20 +124,10 @@ int get_first_in_empty_string(void)
 
     OpContext_set_running_state(&c, gv, Run, "");
 
-    if(Op_execute(gf,&c) != 0)
+    if(Op_execute(gf,&c) != -1)
     {
     	ret = -1;
-    	fprintf(stderr, "get first with STRING should work\n");
-    }
-    if(OpVariable_get_type(OpContext_get_current_value(&c)) != STRING)
-    {
-    	ret = -1;
-    	fprintf(stderr, "get first with STRING should give STRING\n");
-    }
-    if(strcmp(OpVariable_get_string(OpContext_get_current_value(&c)), "") != 0)
-    {
-    	ret = -1;
-    	fprintf(stderr, "get first with STRING should give empty STRING\n");
+    	fprintf(stderr, "get first with empty STRING should not work\n");
     }
 
     Op_free(gf);

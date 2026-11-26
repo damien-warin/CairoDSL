@@ -38,7 +38,7 @@ int get_last_in_NONE(void)
     if(Op_execute(gf,&c) != -1)
     {
     	ret = -1;
-    	fprintf(stderr, "get last with STRING should not work\n");
+    	fprintf(stderr, "get last with NONE should not work\n");
     }
 
     Op_free(gf);

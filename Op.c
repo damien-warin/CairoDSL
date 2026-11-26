@@ -2414,69 +2414,58 @@ int compute_crochets(OpVariable *res, OpVariable *v1, OpVariable *v2, String *er
 	int ret = -1;
 	if(OpVariable_get_type(v2) == DOUBLE)
 	{
-		switch(OpVariable_get_type(v1))
+		int d2 = (int)OpVariable_get_double(v2);
+		if(d2 >= 0)
 		{
-		case NONE :		break;
-		case DOUBLE: 	break;
-		case DOUBLES :	{
-							double *d1 = OpVariable_get_doubles(v1), d2 = OpVariable_get_double(v2), dres;
-							size_t nb = OpVariable_get_number_elements(v1), pos = (size_t)d2;
-							if(nb > pos)
-							{
-								dres = d1[pos];
-								ret = OpVariable_set_double(res, dres);
-							}
-							else
-							{
-								ret = -1;
-								String_empty(err_msg);
-								String_append_printf(err_msg, "Trying to access element [%zu] into an array of %zu elements", pos, nb);
-							}
-						}
-						break;
-		case STRING :	{
-							double d2 = OpVariable_get_double(v2);
-							const char *s = OpVariable_get_string(v1);
-							char cres[2];
-							size_t nb = OpVariable_get_number_elements(v1), pos = (size_t)d2;
-							if(nb > pos)
-							{
-								cres[0] = s[pos];
-								cres[1] = '\0';
-								ret = OpVariable_set_string(res, cres);
-							}
-							else
-							{
-								ret = -1;
-								String_empty(err_msg);
-								String_append_printf(err_msg, "Trying to access char [%zu] into a STRING of size %zu", pos, nb);
-							}
-						}
-						break;
-		case STRINGS :	{
-							double d2 = OpVariable_get_double(v2);
-							const char * const *s = OpVariable_get_strings(v1);
-							const char *empty = "", *cres;
-							size_t nb = OpVariable_get_number_elements(v1), pos = (size_t)d2;
-							if(nb > pos)
-							{
-								cres = s[pos];
-								ret = OpVariable_set_string(res, cres);
-							}
-							else
-							{
-								ret = -1;
-								String_empty(err_msg);
-								String_append_printf(err_msg, "Trying to access element [%zu] into an array of %zu elements", pos, nb);
-							}
-						}
-						break;
+			size_t nb = OpVariable_get_number_elements(v1), pos = (size_t)d2;
+			if(nb > pos)
+			{
+				switch(OpVariable_get_type(v1))
+				{
+				case NONE :		break;
+				case DOUBLE: 	break;
+				case DOUBLES :	{
+									double *d1 = OpVariable_get_doubles(v1), dres;
+									dres = d1[pos];
+									ret = OpVariable_set_double(res, dres);
+								}
+								break;
+				case STRING :	{
+
+									const char *s = OpVariable_get_string(v1);
+									char cres[2];
+									cres[0] = s[pos];
+									cres[1] = '\0';
+									ret = OpVariable_set_string(res, cres);
+								}
+								break;
+				case STRINGS :	{
+									const char * const *s = OpVariable_get_strings(v1);
+									const char *empty = "", *cres;
+									cres = s[pos];
+									ret = OpVariable_set_string(res, cres);
+								}
+								break;
+				}
+			}
+			else
+			{
+				ret = -1;
+				String_empty(err_msg);
+				String_append_printf(err_msg, "Trying to access element [%zu] into an array of %zu elements", pos, nb);
+			}
+		}
+		else
+		{
+			ret = -1;
+			String_empty(err_msg);
+			String_append_printf(err_msg, "Trying to access element with negative index [%d]", d2);
 		}
 	}
 	else
 	{
 		String_empty(err_msg);
-		String_append_char_string(err_msg, "Operande 2 in [] in not type DOUBLE");
+		String_append_char_string(err_msg, "index in [] is not type DOUBLE");
 	}
 	return ret;
 }
@@ -2950,7 +2939,7 @@ int compute_get_first(OpVariable *res, OpVariable *v, String *err_msg)
 						const char *s = OpVariable_get_string(v);
 						char cres[2];
 						size_t nb = OpVariable_get_number_elements(v), pos = 0;
-						if(s != NULL && nb > pos)
+						if(nb > 1 && nb > pos)//size is not len so size > 1 for len > 0
 						{
 							cres[0] = s[pos];
 							cres[1] = '\0';
