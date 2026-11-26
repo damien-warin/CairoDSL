@@ -39,7 +39,7 @@ The language distinguishes between two types of instruction blocks:
 
 Some CanvaBloc blocks also provide an auto-draw mechanism. It is enabled in two situations:
 
-- Blocks associated with the `color` instruction.
+- Blocks associated with the `color`, `setlinewidth`, `setlinejoin`, `setlinecap`, `setfont`, `setfontsize` and `setdash` instructions.
 - The main program, which is itself a global CanvaBloc.
 
 Auto-draw makes it possible, for example, to write:
@@ -50,29 +50,28 @@ rectangle(10, 10, 100, 100);
 
 without an explicit rendering instruction.
 
-This mechanism is triggered only when a path is still available when the block exits.
+This mechanism is triggered only when a path is available both before entering the block and when leaving it.
 
-The `translate`, `rotate`, `scale`, `skewX/Y`, `applymatrix`, `setlinewidth`, `setdash`, `setfont` and `setfontsize` instructions, as well as module and functions calls, also use CanvaBloc blocks, but without auto-draw.
+The `translate`, `rotate`, `scale`, `skewX/Y` and `applymatrix` instructions, as well as module and function calls, also use CanvaBloc blocks, but without auto-draw.
 
-When a CanvaBloc triggers auto-draw, it is performed immediately before the graphics context is restored (`restore()`). Automatic rendering operations therefore do not affect the graphics state retained after the block has closed.
-
+When a CanvaBloc triggers auto-draw, rendering is performed immediately before the graphics context is saved (`save()`) and restored (`restore()`). Automatic rendering therefore does not affect the graphics state retained after the block closes. This allows the path to be rendered using the drawing parameters in effect before and during the block.
 ### 1.4 Declaring and calling modules and functions
 
-Modules and functions make it possible to organize code into reusable components. Their operation is similar, but they serve different purposes: modules can handle child blocks, while functions calculate and return a value.
+Modules and functions make it possible to structure code into reusable components. Their operation is similar, but they serve different purposes: modules can manage child blocks, while functions calculate and return a value.
 
 **Declaring and calling a module**
 
 ```cairo
-module NomDuModule(arg1, arg2) {
+module ModuleName(arg1, arg2) {
     // Module instructions
     children();
 }
 
 // Call without a child block
-NomDuModule(val1, val2);
+ModuleName(val1, val2);
 
 // Call with a child block
-NomDuModule(val1, val2) {
+ModuleName(val1, val2) {
     // Instructions passed to children()
 }
 ```
@@ -82,18 +81,18 @@ The `children()` function is used inside a module to execute the block of instru
 **Declaring and calling a function**
 
 ```cairo
-function NomDeLaFonction(arg1, arg2) {
+function FunctionName(arg1, arg2) {
     // Function instructions
     return arg1 + arg2;
 }
 
 // Call within an expression or assignment
-result = NomDeLaFonction(val1, val2);
+result = FunctionName(val1, val2);
 ```
 
-Functions return a value to the calling process using the `return` statement. It takes an expression, whose result is the value returned.
+Functions return a value to the calling process using the `return` statement. It takes an expression whose result becomes the returned value.
 
-A `return` statement may appear at several points in the function body. When encountered, execution of the function stops immediately and the value is returned to the caller. A `return` statement must also be present as the final instruction in the function body.
+A `return` statement may appear at several places in the function body. When encountered, function execution stops immediately and the value is returned to the caller. A `return` statement must be present as the last instruction in the function body.
 
 Unlike modules, functions cannot receive a child block and therefore do not provide the `children()` mechanism.
 
@@ -102,9 +101,9 @@ Unlike modules, functions cannot receive a child block and therefore do not prov
 - A module must declare at least one parameter, even if that parameter is not used in its body.
 - A function must also declare at least one parameter, even if that parameter is not used in its body.
 - Local variables in a module or function are reset on each execution.
-- Function calls must be part of an expression or assigned to a variable so that their return value can be used.
+- Function calls must be included in an expression or assigned to a variable in order to use their return value.
 - The position of `children()` in the module body determines when the child block is executed.
-- Module and function declarations cannot currently be nested. However, calls to modules and functions can be used in child blocks passed to a module.
+- Nested module and function declarations are not currently supported. However, module and function calls can be used in child blocks passed to a module.
 
 ## Chapter 2: Paths and Geometry
 
@@ -700,32 +699,29 @@ Two functions convert values between strings and numbers.
 **Converting a string to a number**
 
 ```cairo
-value = todouble("12.3");
+value = strtod("12.3");
 ```
 
-The `todouble()` function directly uses the standard C function strtod.
+The `strtod()` function directly uses the standard C function of the same name.
 
 It converts the beginning of the string into a floating-point number (`double`).
 
-If the string does not contain a valid numeric representation, `todouble` returns 0.
+If the string does not contain a valid numeric representation, `strtod` returns 0.
 
 **Converting a number to a string**
 
 ```cairo
-text = tostring(12.3);
-text = tostring(12.3, 2);
+text = dtostr(12.3);
 ```
 
-The `tostring()` function converts a floating-point number into a string using the `%g` format.
-
-The optionnal second parameter indicate the number of decimals.
+The `dtostr()` function converts a floating-point number into a string using the `%g` format.
 
 This format automatically adapts the representation of the number, choosing decimal or scientific notation depending on its value.
 
 Both functions can take an array of their input type and then return an array of their output type.
 
 ```cairo
-valeurs=todouble("12.3", "21", "42");//Values contains [12.3, 21, 42]
+valeurs=strtod("12.3", "21", "42");//Values contains [12.3, 21, 42]
 ```
 
 ## Chapter 9: Variables, Arrays and Strings
@@ -1054,10 +1050,10 @@ When retrieving multiple variables, a single missing variable is enough to trigg
 
 **Example: injecting external parameters**
 
-Combining `getenv()` and `todouble()` makes it easy to pass numeric parameters to the program through the execution environment.
+Combining `getenv()` and `strtod()` makes it easy to pass numeric parameters to the program through the execution environment.
 
 ```cairo
-angles = todouble(getenv(["angle1", "angle2", "angle3"]));
+angles = strtod(getenv(["angle1", "angle2", "angle3"]));
 ```
 
 The retrieved string values are converted to numbers and stored in a numeric array.
